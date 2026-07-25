@@ -1,0 +1,1 @@
+{"version":3,"file":"registry.d.ts","sourceRoot":"","sources":["../../src/adapters/registry.ts"],"names":[],"mappings":"AAAA,2CAA2C;AAC3C,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,YAAY,CAAC;AAelD,wBAAgB,UAAU,CAAC,QAAQ,EAAE,MAAM,GAAG,eAAe,CAQ5D;AAED,wBAAgB,aAAa,IAAI,MAAM,EAAE,CAExC;AAED,wBAAgB,YAAY,IAAI;IAAE,EAAE,EAAE,MAAM,CAAC;IAAC,WAAW,EAAE,MAAM,CAAA;CAAE,EAAE,CAKpE"}
