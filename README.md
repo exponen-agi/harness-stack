@@ -83,13 +83,19 @@ a version manager like [nvm](https://github.com/nvm-sh/nvm)
 ### Step 1 — Install the `harness` CLI
 
 Harness Stack isn't on the npm registry yet (see
-[Contributing](#contributing) if you'd like to help change that), but it
-installs the same way — straight from GitHub — and gives you a global
-`harness` command:
+[Contributing](#contributing) if you'd like to help change that), so you
+install it from a local clone — three commands, no build tools needed
+(the compiled output ships in the repo):
 
 ```bash
-npm install -g git+https://github.com/cloudbloqavi/harness-stack.git
+git clone https://github.com/cloudbloqavi/harness-stack.git
+cd harness-stack
+npm pack
+npm install -g ./harness-stack-0.1.0.tgz     # PowerShell: npm install -g .\harness-stack-0.1.0.tgz
 ```
+
+Once installed you can delete the cloned folder if you like — the tarball
+install is a full copy, not a link back to the clone.
 
 Confirm it worked:
 
@@ -97,6 +103,14 @@ Confirm it worked:
 harness --version
 # 0.1.0
 ```
+
+> **Why not `npm install -g git+https://...`?** You'll find that one-liner
+> in older versions of this README, and it *appears* to work — npm exits
+> without errors — but current npm (v10/v11) has a bug installing git URLs
+> globally: it links the package into npm's temporary cache directory
+> (which is then cleaned) instead of copying it, so the `harness` command
+> is never actually created. The pack-a-tarball route above sidesteps npm's
+> git-install path entirely and is verified on Windows, macOS, and Linux.
 
 <details>
 <summary><strong>Global install failed, or you'd rather not install globally?</strong></summary>
@@ -107,10 +121,9 @@ harness --version
   [official npm guide](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally).
 - **`nvm`-managed Node** — this is usually the smoothest path; nvm's global
   installs don't need `sudo`.
-- **Don't want a global install** — clone the repo and run it locally instead:
+- **Don't want a global install** — run it straight from the clone instead:
   ```bash
-  git clone https://github.com/cloudbloqavi/harness-stack.git
-  cd harness-stack && npm install && npm run build
+  cd harness-stack && npm install
   npm link                 # makes `harness` available globally from this checkout
   # or, without linking, from inside harness-stack/:
   npm run harness -- <command>
@@ -258,11 +271,12 @@ Full explanation, examples, and how to add your own project to it: see the
 
 | Problem | Fix |
 | --- | --- |
-| `harness: command not found` | The global `npm bin` isn't on your `PATH`. Run `npm config get prefix`, then add `<that path>/bin` to your shell's `PATH`. Or use `npm link` from a local clone (Step 1). |
-| `npm install -g ...` fails building on Windows (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | The install builds the package from source, and npm's internal git-dependency prepare step is unreliable on Windows about installing `devDependencies` (like `typescript`) into that temporary build directory — regardless of the `--include=dev` flag it logs. This is fixed on `main`: the build now runs via `npx --yes --package=typescript tsc`, which fetches `typescript` on the fly if it isn't present locally. Re-run the Step 1 install command to pick up the fix. Still hitting it? Use the local-clone fallback in Step 1 (`git clone ... && npm install && npm run build && npm link`), which installs and builds in your normal shell instead of npm's internal prepare pipeline. |
+| Installed with `npm install -g git+https://...` — install reported success but `harness` is "not recognized" / "command not found" | This is the npm git-URL global-install bug described in Step 1: npm links the package into its temporary cache (later cleaned) instead of copying it, and never creates the `harness` launcher. Run `npm uninstall -g harness-stack` to clear the broken install, then follow Step 1's clone → `npm pack` → install-the-tarball route. |
+| `harness: command not found` after a *successful* Step 1 install | The global `npm bin` isn't on your `PATH`. Run `npm config get prefix`, then add `<that path>/bin` (on Windows, the prefix folder itself) to your `PATH`. Or use `npm link` from the clone (Step 1). |
+| Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo and installs never build. Re-install per Step 1. |
 | `harness build-agents` fails with a fresh-context error | An agent needs a web-search tool + Context7 and your platform doesn't expose one yet. Re-run `harness init` and make sure you picked the right platform(s). |
 | Nothing happens when I ask my AI tool to use a sub-agent | Run `harness skills` — if the agent is command-only (not a "skill"), you need to invoke its slash command directly. |
-| I want to update to the latest Harness version | Re-run Step 1's install command — it reinstalls from the `main` branch. |
+| I want to update to the latest Harness version | In your clone: `git pull`, then re-run the `npm pack` + `npm install -g` commands from Step 1 (or re-clone fresh if you deleted the folder). |
 
 <a id="deep-dive-how-it-works"></a>
 
