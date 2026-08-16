@@ -69,16 +69,17 @@ anything). It assumes no prior experience with Harness or with AI agents.
 
 ### Step 0 — Check prerequisites
 
-You need **Node.js 20 or newer** and **git**. Check what you have:
+You need **Node.js 22 or newer** and **git**. Check what you have:
 
 ```bash
-node -v     # must print v20.x.x or higher
+node -v     # must print v22.x.x or higher
 git --version
 ```
 
-Don't have Node 20+? Install it from [nodejs.org](https://nodejs.org) or with
+Don't have Node 22+? Install it from [nodejs.org](https://nodejs.org) or with
 a version manager like [nvm](https://github.com/nvm-sh/nvm)
-(`nvm install 20 && nvm use 20`).
+(`nvm install 22 && nvm use 22`). *(Node 20 reached end-of-life in April 2026
+— it no longer receives security fixes, so Harness no longer supports it.)*
 
 ### Step 1 — Install the `harness` CLI
 
