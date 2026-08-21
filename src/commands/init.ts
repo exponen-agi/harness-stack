@@ -272,9 +272,11 @@ async function installFoundation(
     projectName,
     dryRun: opts.dryRunFoundation,
   });
-  specKit.ok
-    ? log.ok(`Spec Kit: ${specKit.message}`)
-    : log.warn(`Spec Kit: ${specKit.message}`);
+  if (specKit.ok) {
+    log.ok(`Spec Kit: ${specKit.message}`);
+  } else {
+    log.warn(`Spec Kit: ${specKit.message}`);
+  }
 
   const sp = await installSuperpowers(platform, {
     cwd: root,

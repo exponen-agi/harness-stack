@@ -42,6 +42,8 @@ npm test           # vitest — confirm you're starting from a green baseline
 Useful commands while you work:
 
 ```bash
+npm run lint                  # eslint src tests — catches unused vars/imports, etc.
+npm run lint:fix              # same, auto-fixing what it safely can
 npm run typecheck             # tsc --noEmit — must pass, no exceptions
 npm test                      # vitest run
 npm run test:watch            # vitest, watch mode
@@ -93,10 +95,10 @@ past. Cite what you found in the PR description.
 ## Before you open a pull request
 
 ```bash
-npm run typecheck && npm test && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
-All three must pass. If you touched anything under `templates/agents/` or
+All four must pass. If you touched anything under `templates/agents/` or
 `templates/brain/`, also run:
 
 ```bash
