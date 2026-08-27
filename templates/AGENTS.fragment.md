@@ -24,4 +24,10 @@ No skill runs silently. Every skill use is surfaced as
 Sub-agents live in `.subagents/*.yaml` (platform-agnostic). Platform-native
 agent files are generated — edit the YAML, then run `harness build-agents`.
 Model names live only in `.harness/model-map.yaml`; agents declare a tier.
+
+### Never bypass verification
+Don't skip or disable a hook, test, or the `on_check` gate to make a commit
+or task succeed — e.g. `git commit --no-verify`, deleting or weakening a
+failing test, or silencing a lint error instead of fixing it. If a check
+seems wrong, say so and fix it (or ask); don't route around it.
 <!-- HARNESS:END -->

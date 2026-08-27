@@ -12,6 +12,7 @@ import { antigravityAdapter } from "../src/adapters/antigravity.js";
 import { copilotAdapter } from "../src/adapters/copilot.js";
 import { buildRoster } from "../src/build.js";
 import type { ModelMap } from "../src/resolution/model-resolver.js";
+import type { PlatformAdapter } from "../src/adapters/types.js";
 
 function agent(overrides: Record<string, unknown> = {}) {
   return parseSubagent({
@@ -110,7 +111,7 @@ describe("platform-specific verified manual mappings", () => {
 describe("verified sub-agent (render) conventions", () => {
   const a = agent({ name: "demo-agent" });
   const model = { effectiveTier: "fast" as const, model: "M-1", warning: undefined };
-  const r = (adapter: any) =>
+  const r = (adapter: PlatformAdapter) =>
     adapter.render({ agent: a, platform: adapter.id, model, tools: ["read_file"], unsupportedCapabilities: [] });
 
   it("claude-code: .claude/agents/<name>.md", () => {

@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import { calculateMaxParallel } from "../src/orchestrator/scheduler.js";
 import { parseSubagent, type Subagent } from "../src/schema.js";
 
-function mk(name: string, priority: any, mem: number, parallelizable = true): Subagent {
+type Priority = "high" | "normal" | "low";
+
+function mk(name: string, priority: Priority, mem: number, parallelizable = true): Subagent {
   return parseSubagent({
     name,
     description: "d",
