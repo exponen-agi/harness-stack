@@ -20,7 +20,7 @@ claude-code:
 antigravity:
   fast:      gemini-3.5-flash
   reasoning: gemini-3-pro
-  deep:      gemini-3-pro          # or claude-opus-4-6 if Claude routing enabled
+  deep:      gemini-3-pro          # or claude-opus-5 if Claude routing enabled
   inherit:   inherit
 
 codex:
