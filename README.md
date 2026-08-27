@@ -92,12 +92,28 @@ compiled output ships in the repo):
 npm install -g https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
 ```
 
+> **On npm 12 or newer** (ships with recent Node on Windows), npm blocks
+> URL installs and install scripts by default, so use:
+>
+> ```powershell
+> npm install -g --allow-remote=all https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
+> ```
+>
+> You'll see a warning that harness-stack's `prepare` script was blocked —
+> **that's safe to ignore.** The script only rebuilds from source when dev
+> tooling is present; the compiled output already ships in the repo, so the
+> blocked script changes nothing.
+
 Confirm it worked:
 
 ```bash
 harness --version
 # 0.1.0
 ```
+
+If the install succeeded but `harness` isn't recognized, it's almost
+always a `PATH` issue — see [Troubleshooting](#troubleshooting) below,
+which walks through it (Windows included).
 
 > **Why the `/archive/...tar.gz` URL instead of `npm install -g
 > git+https://...`?** You'll find the `git+https` one-liner in older
@@ -277,11 +293,78 @@ Full explanation, examples, and how to add your own project to it: see the
 | Problem | Fix |
 | --- | --- |
 | Installed with `npm install -g git+https://...` — install reported success but `harness` is "not recognized" / "command not found" | This is the npm git-URL global-install bug described in Step 1: npm links the package into its temporary cache (later cleaned) instead of copying it, and never creates the `harness` launcher. Run `npm uninstall -g harness-stack` to clear the broken install, then use Step 1's `/archive/...tar.gz` one-liner. |
-| `harness: command not found` after a *successful* Step 1 install | The global `npm bin` isn't on your `PATH`. Run `npm config get prefix`, then add `<that path>/bin` (on Windows, the prefix folder itself) to your `PATH`. Or use `npm link` from the clone (Step 1). |
+| Installed with the Step 1 one-liner, but `harness` is "not recognized" / "command not found" | npm's global bin folder isn't on your `PATH`. On Windows, follow the [walkthrough below](#windows-path). On macOS/Linux: `npm config get prefix`, then add `<that path>/bin` to your shell's `PATH`. |
+| `Could not determine Node.js install directory` (Windows) | Your npm launcher can't find its own Node install — classic symptom of a self-updated npm under `%APPDATA%\npm` clashing with the npm bundled with Node. See the [fix below](#windows-npm-broken). |
+| `npm warn install-scripts ... prepare: node scripts/prepare.mjs ... blocked` (npm 12+) | Harmless — see the note in Step 1. The blocked script only rebuilds from source when dev tooling is present; the shipped compiled output is used either way. Add `--allow-scripts=harness-stack` if you want the warning gone. |
 | Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo and installs never build. Re-install per Step 1. |
 | `harness build-agents` fails with a fresh-context error | An agent needs a web-search tool + Context7 and your platform doesn't expose one yet. Re-run `harness init` and make sure you picked the right platform(s). |
 | Nothing happens when I ask my AI tool to use a sub-agent | Run `harness skills` — if the agent is command-only (not a "skill"), you need to invoke its slash command directly. |
 | I want to update to the latest Harness version | Re-run Step 1's one-liner — the `/archive/refs/heads/main.tar.gz` URL always serves the current `main`. If npm seems to have served you a stale cached copy, run `npm cache clean --force` first and re-install. |
+
+<a id="windows-path"></a>
+
+#### Windows: install succeeded but `harness` is "not recognized"
+
+npm puts global launchers in its *prefix* folder on Windows (usually
+`C:\Users\<you>\AppData\Roaming\npm`), and that folder must be on your
+`PATH`. Node's installer normally adds it, but repairs/reinstalls or PATH
+edits can drop it. Diagnose in PowerShell:
+
+```powershell
+npm prefix -g                             # where the launchers go
+Test-Path "$env:APPDATA\npm\harness.cmd"  # does the launcher exist?
+```
+
+- **`True`** → the install is fine; the folder just isn't on `PATH`.
+  Fix the current session, verify, then make it permanent:
+
+  ```powershell
+  $env:Path += ";$env:APPDATA\npm"
+  harness --version          # should print the version now
+
+  # make it permanent for future terminals:
+  [Environment]::SetEnvironmentVariable(
+    "Path",
+    [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:APPDATA\npm",
+    "User"
+  )
+  ```
+
+  Then open a fresh terminal and run `harness --version` once more.
+
+- **`False`** → the launcher wasn't created. Most likely a broken leftover
+  from an earlier `git+https` install is in the way. Clean it out and
+  reinstall fresh (should report "**added** N packages", not "changed"):
+
+  ```powershell
+  npm uninstall -g harness-stack
+  Remove-Item "$env:APPDATA\npm\node_modules\harness-stack" -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item "$env:APPDATA\npm\harness*" -Force -ErrorAction SilentlyContinue
+  npm install -g --allow-remote=all https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
+  ```
+
+<a id="windows-npm-broken"></a>
+
+#### Windows: `Could not determine Node.js install directory`
+
+This means the `npm` command itself is broken — it fails before even
+reading what you asked it to install. The usual cause is a self-updated
+npm living in `%APPDATA%\npm` (from running `npm install -g npm` at some
+point) that has fallen out of sync with the Node installation in
+`C:\Program Files\nodejs`. Remove the shadowing copy so Node's own bundled
+npm takes over:
+
+```powershell
+Remove-Item "$env:APPDATA\npm\npm*" -Force
+Remove-Item "$env:APPDATA\npm\npx*" -Force
+Remove-Item "$env:APPDATA\npm\node_modules\npm" -Recurse -Force
+```
+
+Close and reopen PowerShell, confirm `npm -v` prints a version again, then
+re-run the Step 1 install. If `npm -v` still fails, re-run the Node
+installer from [nodejs.org](https://nodejs.org) and choose **Repair**.
+Going forward, avoid `npm install -g npm` on Windows — let the Node
+installer manage npm's version.
 
 <a id="deep-dive-how-it-works"></a>
 

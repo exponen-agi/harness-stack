@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveModel, type ModelMap } from "../src/resolution/model-resolver.js";
+import type { ModelTier, Subagent } from "../src/schema.js";
 
 const map: ModelMap = {
   "claude-code": { fast: "haiku-4-5", reasoning: "sonnet-4-6", deep: "opus-4-8", inherit: "inherit" },
@@ -7,8 +8,13 @@ const map: ModelMap = {
   antigravity: { fast: "gemini-3.5-flash", reasoning: "gemini-3-pro", inherit: "inherit" },
 };
 
-const agent = (tier: any, overrides: Record<string, string> = {}) =>
-  ({ model_tier: tier, model_overrides: overrides }) as any;
+const agent = (
+  tier: ModelTier,
+  overrides: Record<string, string> = {},
+): Pick<Subagent, "model_tier" | "model_overrides"> => ({
+  model_tier: tier,
+  model_overrides: overrides,
+});
 
 describe("resolveModel (R3)", () => {
   it("resolves a tier to the concrete model per platform", () => {
