@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-test:
-    name: typecheck · test · build
+    name: lint · typecheck · test · build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -63,7 +63,7 @@ jobs:
           # Compare against the matching branch (the brain's changes live on the
           # same feature branch pre-merge); fall back to the default branch.
           BRAIN_BRANCH: ${{ github.head_ref || github.ref_name }}
-          BRAIN_URL: https://github.com/cloudbloqavi/harness-brain.git
+          BRAIN_URL: https://github.com/exponen-agi/harness-brain.git
         run: |
           git clone --depth 1 --branch "$BRAIN_BRANCH" "$BRAIN_URL" "$RUNNER_TEMP/harness-brain" \
             || git clone --depth 1 "$BRAIN_URL" "$RUNNER_TEMP/harness-brain"

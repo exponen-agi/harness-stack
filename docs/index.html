@@ -170,7 +170,7 @@
       <a href="#architecture">architecture</a>
       <a href="#agents">agents</a>
       <a href="#platforms">platforms</a>
-      <a class="btn-pill" href="https://github.com/cloudbloqavi/harness-stack" target="_blank" rel="noopener">github ↗</a>
+      <a class="btn-pill" href="https://github.com/exponen-agi/harness-stack" target="_blank" rel="noopener">github ↗</a>
     </div>
   </div>
 </div>
@@ -188,7 +188,7 @@
   </p>
   <div class="install-bar">
     <span class="prompt">$</span>
-    <code id="install-cmd">npm install -g git+https://github.com/cloudbloqavi/harness-stack.git</code>
+    <code id="install-cmd">npm install -g https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz</code>
     <button class="copy-btn" id="copy-btn">copy</button>
   </div>
 </div>
@@ -200,7 +200,7 @@
     <em>your</em> repo(s); <code>harness-brain</code> remembers what they did, across
     all of them. Click a node here first — the sections below explain each part
     in technical detail.
-    <a href="https://github.com/cloudbloqavi/harness-brain" target="_blank" rel="noopener" style="color:var(--muted);">harness-brain repo ↗</a>
+    <a href="https://github.com/exponen-agi/harness-brain" target="_blank" rel="noopener" style="color:var(--muted);">harness-brain repo ↗</a>
   </p>
 
   <div class="arch-flow">
@@ -350,9 +350,9 @@
   <div class="wrap footer-inner" style="padding-left:0;padding-right:0;">
     <div>harness-stack · MIT · cloudbloqavi</div>
     <div class="footer-links">
-      <a href="https://github.com/cloudbloqavi/harness-stack" target="_blank" rel="noopener">repo ↗</a>
-      <a href="https://github.com/cloudbloqavi/harness-stack/issues" target="_blank" rel="noopener">issues ↗</a>
-      <a href="https://github.com/cloudbloqavi/harness-brain" target="_blank" rel="noopener">harness-brain ↗</a>
+      <a href="https://github.com/exponen-agi/harness-stack" target="_blank" rel="noopener">repo ↗</a>
+      <a href="https://github.com/exponen-agi/harness-stack/issues" target="_blank" rel="noopener">issues ↗</a>
+      <a href="https://github.com/exponen-agi/harness-brain" target="_blank" rel="noopener">harness-brain ↗</a>
     </div>
   </div>
 </footer>
@@ -383,7 +383,7 @@
       lines: [
         { text: 'reading .subagents/*.yaml ...', color: 'var(--muted)' },
         { text: '✓ .claude/agents/*.md (9)', color: 'var(--green)' },
-        { text: '✓ .claude/skills/*/SKILL.md (4 decision-routed)', color: 'var(--green)' },
+        { text: '✓ .claude/skills/*/SKILL.md (5 decision-routed)', color: 'var(--green)' },
         { text: '✓ .claude/commands/*.md (9)', color: 'var(--green)' },
         { text: 'done in 0.41s', color: 'var(--system)' }
       ]
@@ -413,7 +413,7 @@
 
   var AGENTS = [
     { id: 'harness-init-agent', tier: 'reasoning', triggers: ['on_init'], purpose: 'Classify project, gap report, install base tooling.', expose: 'command' },
-    { id: 'spec-author-agent', tier: 'reasoning', triggers: ['on_init'], purpose: 'Drive Spec Kit: constitution → spec → plan → tasks.', expose: 'command' },
+    { id: 'spec-author-agent', tier: 'reasoning', triggers: ['on_init', 'on_demand'], purpose: 'Drive Spec Kit: constitution → spec → plan → tasks.', expose: 'command' },
     { id: 'dependency-audit-agent', tier: 'reasoning', triggers: ['on_init', 'on_demand'], purpose: 'Maintain DEPENDENCIES.md — latest / outdated / deprecated / EOL — from live data.', expose: 'command' },
     { id: 'skills-router-agent', tier: 'fast', triggers: ['on_demand'], purpose: 'Rank skills across sources, consent-gated.', expose: 'skill + command' },
     { id: 'mcp-router-agent', tier: 'fast', triggers: ['on_demand'], purpose: 'Rank MCP servers from the curated allowlist.', expose: 'skill + command' },
