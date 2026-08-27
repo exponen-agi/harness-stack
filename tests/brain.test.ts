@@ -37,8 +37,18 @@ describe("resolveBrainPath", () => {
   });
   it("keeps an in-repo relative form", () => {
     const { abs, stored } = resolveBrainPath("/work/app", "memory/brain");
-    expect(abs).toBe("/work/app/memory/brain");
+    // `abs` is a native absolute path — on Windows that is D:\work\app\...,
+    // so compare against path.resolve rather than a hardcoded POSIX literal.
+    expect(abs).toBe(path.resolve("/work/app", "memory/brain"));
     expect(stored).toBe("memory/brain");
+  });
+  it("stores a POSIX-separated path so the config stays portable", () => {
+    // .harness/config.yaml is committed and shared across platforms, so the
+    // persisted value must never carry Windows separators.
+    for (const input of [undefined, "memory/brain", "../harness-brain"]) {
+      const { stored } = resolveBrainPath("/work/app", input);
+      expect(stored, `stored for ${String(input)}`).not.toContain("\\");
+    }
   });
 });
 

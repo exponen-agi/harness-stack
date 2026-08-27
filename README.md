@@ -34,7 +34,7 @@ ends. Harness Stack adds the parts a plain assistant doesn't do on its own:
   drift, log the "why") instead of one assistant trying to do everything from
   a blank slate.
 - **It has memory across sessions and repos** (via the optional
-  [harness-brain](https://github.com/cloudbloqavi/harness-brain)), so context
+  [harness-brain](https://github.com/exponen-agi/harness-brain)), so context
   survives past today's chat window.
 - **It's the same behavior regardless of which AI tool you pick** — switch
   from Claude Code to Cursor and the same checks still run.
@@ -89,14 +89,14 @@ command installs it straight from GitHub — no clone, no build tools (the
 compiled output ships in the repo):
 
 ```bash
-npm install -g https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
+npm install -g https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz
 ```
 
 > **On npm 12 or newer** (ships with recent Node on Windows), npm blocks
 > URL installs and install scripts by default, so use:
 >
 > ```powershell
-> npm install -g --allow-remote=all https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
+> npm install -g --allow-remote=all https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz
 > ```
 >
 > You'll see a warning that harness-stack's `prepare` script was blocked —
@@ -137,7 +137,7 @@ which walks through it (Windows included).
 - **Prefer installing from a local checkout** — clone, pack, and install
   the tarball (this also avoids the git-URL bug above):
   ```bash
-  git clone https://github.com/cloudbloqavi/harness-stack.git
+  git clone https://github.com/exponen-agi/harness-stack.git
   cd harness-stack
   npm pack
   npm install -g ./harness-stack-0.1.0.tgz   # PowerShell: .\harness-stack-0.1.0.tgz
@@ -264,7 +264,7 @@ git commit -m "Add Harness sub-agents"
 
 Harness can also keep a running, human-readable log of *what changed and why*
 across your commits, written by `commit-brain-agent` into a companion
-repository: [harness-brain](https://github.com/cloudbloqavi/harness-brain).
+repository: [harness-brain](https://github.com/exponen-agi/harness-brain).
 It's entirely opt-in.
 
 ```bash
@@ -273,7 +273,7 @@ harness init --brain ./memory --brain-source scaffold     # or: local skeleton, 
 harness init --skip-brain                                 # or: skip it (default if you say "no" at the prompt)
 ```
 
-- **clone** pulls the [harness-brain](https://github.com/cloudbloqavi/harness-brain)
+- **clone** pulls the [harness-brain](https://github.com/exponen-agi/harness-brain)
   repo, complete with worked examples you can look at and adapt.
 - **scaffold** creates the same folder structure locally, offline, with no
   network call.
@@ -286,7 +286,7 @@ export HARNESS_BRAIN_PATH=/path/to/harness-brain
 ```
 
 Full explanation, examples, and how to add your own project to it: see the
-[harness-brain README](https://github.com/cloudbloqavi/harness-brain#readme).
+[harness-brain README](https://github.com/exponen-agi/harness-brain#readme).
 
 ### Troubleshooting
 
@@ -296,7 +296,7 @@ Full explanation, examples, and how to add your own project to it: see the
 | Installed with the Step 1 one-liner, but `harness` is "not recognized" / "command not found" | npm's global bin folder isn't on your `PATH`. On Windows, follow the [walkthrough below](#windows-path). On macOS/Linux: `npm config get prefix`, then add `<that path>/bin` to your shell's `PATH`. |
 | `Could not determine Node.js install directory` (Windows) | Your npm launcher can't find its own Node install — classic symptom of a self-updated npm under `%APPDATA%\npm` clashing with the npm bundled with Node. See the [fix below](#windows-npm-broken). |
 | `npm warn install-scripts ... prepare: node scripts/prepare.mjs ... blocked` (npm 12+) | Harmless — see the note in Step 1. The blocked script only rebuilds from source when dev tooling is present; the shipped compiled output is used either way. Add `--allow-scripts=harness-stack` if you want the warning gone. |
-| Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo and installs never build. Re-install per Step 1. |
+| Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo, so *global* installs never build. Re-install per Step 1. (A normal `git clone` + `npm install` for development still builds, which is intended — it just needs the devDependencies that a clone installs anyway.) |
 | `harness build-agents` fails with a fresh-context error | An agent needs a web-search tool + Context7 and your platform doesn't expose one yet. Re-run `harness init` and make sure you picked the right platform(s). |
 | Nothing happens when I ask my AI tool to use a sub-agent | Run `harness skills` — if the agent is command-only (not a "skill"), you need to invoke its slash command directly. |
 | I want to update to the latest Harness version | Re-run Step 1's one-liner — the `/archive/refs/heads/main.tar.gz` URL always serves the current `main`. If npm seems to have served you a stale cached copy, run `npm cache clean --force` first and re-install. |
@@ -340,7 +340,7 @@ Test-Path "$env:APPDATA\npm\harness.cmd"  # does the launcher exist?
   npm uninstall -g harness-stack
   Remove-Item "$env:APPDATA\npm\node_modules\harness-stack" -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item "$env:APPDATA\npm\harness*" -Force -ErrorAction SilentlyContinue
-  npm install -g --allow-remote=all https://github.com/cloudbloqavi/harness-stack/archive/refs/heads/main.tar.gz
+  npm install -g --allow-remote=all https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz
   ```
 
 <a id="windows-npm-broken"></a>
@@ -451,6 +451,7 @@ Harness day to day.
      skills-router-agent   |   rank skills (consent-gated)
      mcp-router-agent      |   rank MCP servers (consent-gated)
      dependency-audit-agent|   re-audit dependencies on request
+     spec-author-agent     |   re-run / extend the Spec Kit flow on request
      test-author-agent     |   review tests; author missing ones (on consent)
                            |
    on_check ──────────────┤   harness check [--all]  — pre-commit gate (parallel)
@@ -607,7 +608,7 @@ Phase 2 agent from [`docs/spec-subagents.md`](docs/spec-subagents.md).
 **Quick setup:**
 
 ```bash
-git clone https://github.com/cloudbloqavi/harness-stack.git
+git clone https://github.com/exponen-agi/harness-stack.git
 cd harness-stack
 npm install
 npm test              # vitest — should be all green before you start
@@ -623,13 +624,13 @@ npm run verify:brain-template # templates/brain/ matches the harness-brain repo
 ```
 
 `templates/brain/` is the offline scaffold and must stay in sync with the
-[harness-brain](https://github.com/cloudbloqavi/harness-brain) example repo.
+[harness-brain](https://github.com/exponen-agi/harness-brain) example repo.
 `verify:brain-template` diffs them (defaults to a `../harness-brain` sibling
 checkout, or pass a path / set `HARNESS_BRAIN_DIR`); CI runs the same check.
 
 Full guide (branching, commit style, opening a PR, what a good first PR looks
 like): see [**CONTRIBUTING.md**](CONTRIBUTING.md). Questions or ideas? Open a
-[GitHub issue](https://github.com/cloudbloqavi/harness-stack/issues) — there's
+[GitHub issue](https://github.com/exponen-agi/harness-stack/issues) — there's
 no such thing as a question too small.
 
 ## License

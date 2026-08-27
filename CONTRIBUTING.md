@@ -7,7 +7,7 @@ doc — please open an issue and say so.
 
 ## Ways to contribute (no code required)
 
-- **Report a bug** or confusing behaviour — [open an issue](https://github.com/cloudbloqavi/harness-stack/issues).
+- **Report a bug** or confusing behaviour — [open an issue](https://github.com/exponen-agi/harness-stack/issues).
 - **Improve the docs** — a clearer sentence, a missing example, a broken link.
 - **Try it on a real project** and tell us where it got confusing.
 - **Add a worked example** to `templates/brain/projects/` or a new agent idea
@@ -33,7 +33,7 @@ than writing code that doesn't land.
 You need **Node.js 22+**, **npm**, and **git**.
 
 ```bash
-git clone https://github.com/cloudbloqavi/harness-stack.git
+git clone https://github.com/exponen-agi/harness-stack.git
 cd harness-stack
 npm install
 npm test           # vitest — confirm you're starting from a green baseline
@@ -129,6 +129,6 @@ npm run verify:brain-template
 
 ## Questions
 
-Open a [GitHub issue](https://github.com/cloudbloqavi/harness-stack/issues) —
+Open a [GitHub issue](https://github.com/exponen-agi/harness-stack/issues) —
 there's no such thing as a question too small, and "I don't understand X" is a
 valid, useful issue on its own (it means the docs need work).

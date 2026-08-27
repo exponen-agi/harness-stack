@@ -1,6 +1,6 @@
 import type { BrainConfig, BrainSource } from "../project.js";
 /** Default upstream repo cloned when the developer opts into "clone". */
-export declare const DEFAULT_BRAIN_REPO = "https://github.com/cloudbloqavi/harness-brain.git";
+export declare const DEFAULT_BRAIN_REPO = "https://github.com/exponen-agi/harness-brain.git";
 /** Default location, a sibling of the project so the brain is its own repo. */
 export declare const DEFAULT_BRAIN_DIR = "../harness-brain";
 export interface BrainSetupOptions {

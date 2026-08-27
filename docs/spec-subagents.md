@@ -168,7 +168,7 @@ Installed at init, consent-gated
 
 ### Optional commit-memory: harness-brain
 
-Init also offers to set up [harness-brain](https://github.com/cloudbloqavi/harness-brain),
+Init also offers to set up [harness-brain](https://github.com/exponen-agi/harness-brain),
 the git-backed commit-memory the `commit-brain-agent` writes into
 ([`src/brain/setup.ts`](../src/brain/setup.ts)). It is opt-in. On consent the
 developer picks a path and a source — **clone** the default repo, or
