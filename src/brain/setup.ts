@@ -57,7 +57,14 @@ export function resolveBrainPath(
   const chosen = input && input.trim() ? input.trim() : DEFAULT_BRAIN_DIR;
   const abs = path.resolve(root, chosen);
   const rel = path.relative(root, abs);
-  return { abs, stored: rel === "" ? "." : rel };
+  // `stored` is written to .harness/config.yaml, which is committed to git and
+  // shared across a team that may mix Windows, macOS and Linux. path.relative
+  // yields native separators, so on Windows this would persist
+  // "..\harness-brain" — a path the same config can't resolve on a teammate's
+  // Mac. Normalise to POSIX separators, which every platform reads. `abs`
+  // stays native: it is used locally, never serialised.
+  const posixRel = rel.split(path.sep).join("/");
+  return { abs, stored: posixRel === "" ? "." : posixRel };
 }
 
 export async function cloneBrain(
