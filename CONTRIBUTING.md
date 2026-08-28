@@ -95,10 +95,10 @@ past. Cite what you found in the PR description.
 ## Before you open a pull request
 
 ```bash
-npm run lint && npm run typecheck && npm test && npm run build
+npm run lint && npm run typecheck && npm test && npm run build && npm run eval:agents
 ```
 
-All four must pass. If you touched anything under `templates/agents/` or
+All five must pass. If you touched anything under `templates/agents/` or
 `templates/brain/`, also run:
 
 ```bash

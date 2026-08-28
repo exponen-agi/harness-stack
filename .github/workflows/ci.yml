@@ -35,6 +35,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Eval agent specs
+        run: npm run eval:agents
+
       - name: Build
         run: npm run build
 

@@ -28,7 +28,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src tests eslint.config.js",
     "lint:fix": "eslint src tests eslint.config.js --fix",
-    "verify:brain-template": "node scripts/check-brain-template.mjs"
+    "verify:brain-template": "node scripts/check-brain-template.mjs",
+    "eval:agents": "node scripts/eval-agents.mjs"
   },
   "dependencies": {
     "commander": "^12.1.0",

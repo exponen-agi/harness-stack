@@ -15,11 +15,12 @@ import {
   loadTriggerMap,
   type BrainConfig,
 } from "../project.js";
-import type { Trigger } from "../schema.js";
+import { commandName, type Subagent, type Trigger } from "../schema.js";
 import {
   resolveTrigger,
   describeBinding,
 } from "../resolution/trigger-resolver.js";
+import { installGitHook } from "../foundation/git-hooks.js";
 import { templatesDir } from "../templates.js";
 import {
   ensureDir,
@@ -183,6 +184,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
   // 5. Event-hook wiring plan for each chosen platform.
   log.step("4. Event-hook wiring");
   for (const platform of platforms) await showHookPlan(opts.root, platform);
+  await installOnCommitHook(opts.root, platforms);
 
   // 6. Foundation install (consent-gated subprocesses). Spec Kit's
   //    --integration is single-target, so it runs for the primary platform;
@@ -226,6 +228,45 @@ async function showHookPlan(root: string, platform: string): Promise<void> {
         `search + Context7, then refresh .harness/trigger-map.yaml.`,
     );
   }
+}
+
+/**
+ * Materialize the `on_commit` binding: where any selected platform resolves
+ * `on_commit` to a git hook (every shipped platform does today, per
+ * trigger-map.yaml), actually install it — instead of only describing the
+ * plan in `showHookPlan`'s output.
+ */
+async function installOnCommitHook(root: string, platforms: string[]): Promise<void> {
+  const map = await loadTriggerMap(root);
+  const agents = await loadSubagents(root);
+  const onCommitAgents = agents.filter((a) => a.triggers.includes("on_commit"));
+  if (onCommitAgents.length === 0) return;
+
+  const gitHookBindings = platforms
+    .map((platform) => resolveTrigger(platform, "on_commit", map).binding)
+    .filter((binding) => binding.kind === "git-hook" && binding.hook);
+  if (gitHookBindings.length === 0) return;
+
+  const hookName = gitHookBindings[0]!.hook!;
+  const result = installGitHook(root, hookName, onCommitHookBody(onCommitAgents));
+
+  const messages: Record<typeof result.status, string> = {
+    installed: `installed .git/hooks/${hookName}`,
+    appended: `appended to your existing .git/hooks/${hookName} (kept what was already there)`,
+    updated: `.git/hooks/${hookName} already had the Harness block — refreshed it`,
+    "skipped-worktree": `.git isn't a plain directory here (worktree/submodule, or no repo) — skipped git hook install`,
+  };
+  log.ok(messages[result.status]);
+}
+
+/** Shell command run by the installed on_commit hook — never fails the commit. */
+function onCommitHookBody(agents: Subagent[]): string {
+  return agents
+    .map(
+      (a) =>
+        `echo "[harness] on_commit: run /${commandName(a)} in your AI tool to update harness-brain."`,
+    )
+    .join("\n");
 }
 
 async function appendAgentsFragment(
