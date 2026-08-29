@@ -594,7 +594,11 @@ the-loop is the default; the autonomous controller is opt-in and deferred. See
 | `verifier-agent` | reasoning | Pre-commit executable check: independently confirm the change is covered by passing tests (no `write`; delegates authoring to `test-author-agent`, owns the verdict) |
 
 See [`docs/spec-subagents.md`](docs/spec-subagents.md) for the full design spec
-and the Phase 2/3 catalog.
+and the Phase 2/3 catalog. New to this codebase, or new to AI agents in
+general? Read [`docs/factories-as-code.md`](docs/factories-as-code.md) first —
+a plain-English walkthrough (with diagrams) of how a spec becomes a running
+agent, how triggers actually fire, and how `npm run eval:agents` keeps the
+shipped specs honest.
 
 <a id="contributing"></a>
 
