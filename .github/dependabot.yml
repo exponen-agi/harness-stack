@@ -10,6 +10,17 @@ updates:
         dependency-type: development
     commit-message:
       prefix: "deps"
+    # typescript-eslint@8.x peer-caps `typescript` at "<6.1.0" (see
+    # https://github.com/typescript-eslint/typescript-eslint peerDependencies).
+    # A grouped dev-dependency update can bump `typescript` past that cap
+    # without noticing the cross-package peer conflict, which breaks `npm ci`
+    # for every contributor and every CI job at once (this happened once
+    # already — see CONTRIBUTING.md's dependency-upgrade note). Ignore
+    # `typescript` releases beyond the range typescript-eslint currently
+    # supports until a typescript-eslint release lifts the cap.
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">=6.1.0"]
 
   - package-ecosystem: github-actions
     directory: /
