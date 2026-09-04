@@ -217,10 +217,13 @@ on macOS, Linux, and Windows. A couple of specific notes:
   [README](../README.md) for the exact fix if `harness` isn't found after
   installing.
 - Every script under `scripts/` in this repo (`eval-agents.mjs`,
-  `check-brain-template.mjs`, `prepare.mjs`) is plain Node — no Bash-only
-  syntax, no `chmod +x` required to run them, just `node scripts/<file>.mjs`.
-  That's a deliberate choice so a contributor on any OS can run the exact same
-  command as CI does.
+  `check-brain-template.mjs`, `prepare.mjs`) is plain Node, no Bash-only
+  syntax, no `chmod +x` required — run any of them through its `npm run`
+  script (e.g. `npm run eval:agents`) and it works identically on any OS.
+  `eval-agents.mjs` specifically imports the agent schema straight from
+  `src/` (not the compiled `dist/`) so it always checks against the code
+  that's about to ship, which means it needs `tsx` rather than plain `node`
+  — `npm run eval:agents` already wires that up.
 - Our own CI (`.github/workflows/ci.yml`) runs the full test/lint/build/eval
   chain on `ubuntu-latest`, `macos-latest`, *and* `windows-latest` for every
   pull request — so "works on my machine" gets caught before it ships.

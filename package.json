@@ -29,7 +29,7 @@
     "lint": "eslint src tests eslint.config.js",
     "lint:fix": "eslint src tests eslint.config.js --fix",
     "verify:brain-template": "node scripts/check-brain-template.mjs",
-    "eval:agents": "node scripts/eval-agents.mjs"
+    "eval:agents": "tsx scripts/eval-agents.mjs"
   },
   "dependencies": {
     "commander": "^15.0.0",
@@ -41,7 +41,7 @@
     "@types/node": "^26.3.0",
     "eslint": "^10.9.1",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   }

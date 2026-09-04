@@ -8,16 +8,22 @@
  * per agent plus a summary, and exits 1 if anything fails.
  *
  * Usage:
- *   node scripts/eval-agents.mjs
+ *   npm run eval:agents
+ *
+ * (Runs under `tsx`, not plain `node` — it imports the schema straight from
+ * `src/`, so it needs a TypeScript-aware runtime. `npm run eval:agents`
+ * already wires that up; don't invoke this file with plain `node`.)
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
-// The canonical capability enum lives in src/schema.ts (Zod); dist/ ships the
-// compiled, always-committed build of it, so this reuses that as the single
-// source of truth instead of re-guessing the list here.
-import { CAPABILITIES } from "../dist/schema.js";
+// The canonical capability enum lives in src/schema.ts (Zod) — imported
+// straight from source (this script runs under `tsx`, not plain `node`, for
+// exactly this reason) so eval:agents always checks specs against the code
+// that's actually about to ship, never a `dist/` build that's fallen behind
+// an unbuilt source change.
+import { CAPABILITIES } from "../src/schema.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const agentsDir = path.resolve(here, "..", "templates", "agents");

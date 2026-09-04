@@ -15,7 +15,13 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    // Explicit, not auto-discovered: without this, TS pulls in every package
+    // under node_modules/@types (chai, estree, json-schema, ... from vitest's
+    // own tree) as ambient globals, and some TS/@types-node version pairs
+    // fail to auto-discover @types/node at all, dropping `process`/`node:fs`
+    // globals with no build error until `tsc` runs.
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "tests"]

@@ -27,158 +27,80 @@ export declare const subagentSchema: z.ZodObject<{
     version: z.ZodDefault<z.ZodString>;
     description: z.ZodString;
     goal: z.ZodString;
-    type: z.ZodEnum<["on-demand", "continuous"]>;
-    triggers: z.ZodDefault<z.ZodArray<z.ZodEnum<["on_commit", "on_check", "on_demand", "on_init"]>, "many">>;
-    expose_as: z.ZodDefault<z.ZodArray<z.ZodEnum<["subagent", "skill", "command"]>, "many">>;
-    /** Explicit slash/skill command name; defaults to the de-suffixed name. */
+    type: z.ZodEnum<{
+        "on-demand": "on-demand";
+        continuous: "continuous";
+    }>;
+    triggers: z.ZodDefault<z.ZodArray<z.ZodEnum<{
+        on_commit: "on_commit";
+        on_check: "on_check";
+        on_demand: "on_demand";
+        on_init: "on_init";
+    }>>>;
+    expose_as: z.ZodDefault<z.ZodArray<z.ZodEnum<{
+        subagent: "subagent";
+        skill: "skill";
+        command: "command";
+    }>>>;
     command: z.ZodOptional<z.ZodString>;
-    model_tier: z.ZodEnum<["fast", "reasoning", "deep", "inherit"]>;
+    model_tier: z.ZodEnum<{
+        fast: "fast";
+        reasoning: "reasoning";
+        deep: "deep";
+        inherit: "inherit";
+    }>;
     model_overrides: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodString>>;
-    capabilities: z.ZodArray<z.ZodEnum<["read", "write", "exec", "web_search", "web_fetch"]>, "many">;
+    capabilities: z.ZodArray<z.ZodEnum<{
+        read: "read";
+        write: "write";
+        exec: "exec";
+        web_search: "web_search";
+        web_fetch: "web_fetch";
+    }>>;
     requires_fresh_context: z.ZodDefault<z.ZodBoolean>;
     skills: z.ZodDefault<z.ZodArray<z.ZodObject<{
         name: z.ZodString;
         path: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        name: string;
-        path: string;
-    }, {
-        name: string;
-        path: string;
-    }>, "many">>;
-    mcp_servers: z.ZodDefault<z.ZodArray<z.ZodEffects<z.ZodObject<{
+    }, z.core.$strip>>>;
+    mcp_servers: z.ZodDefault<z.ZodArray<z.ZodObject<{
         name: z.ZodString;
-        mode: z.ZodEnum<["url", "npx", "stdio"]>;
+        mode: z.ZodEnum<{
+            url: "url";
+            npx: "npx";
+            stdio: "stdio";
+        }>;
         url: z.ZodOptional<z.ZodString>;
         package: z.ZodOptional<z.ZodString>;
         command: z.ZodOptional<z.ZodString>;
-        auth: z.ZodDefault<z.ZodEnum<["none", "env", "oauth"]>>;
+        auth: z.ZodDefault<z.ZodEnum<{
+            none: "none";
+            env: "env";
+            oauth: "oauth";
+        }>>;
         env_var: z.ZodOptional<z.ZodString>;
         base: z.ZodOptional<z.ZodBoolean>;
-    }, "strip", z.ZodTypeAny, {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        auth: "none" | "env" | "oauth";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }, {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        auth?: "none" | "env" | "oauth" | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }>, {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        auth: "none" | "env" | "oauth";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }, {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        auth?: "none" | "env" | "oauth" | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }>, "many">>;
+    }, z.core.$strip>>>;
     parallelizable: z.ZodDefault<z.ZodBoolean>;
     resource_hint: z.ZodDefault<z.ZodObject<{
-        priority: z.ZodDefault<z.ZodEnum<["high", "normal", "low"]>>;
+        priority: z.ZodDefault<z.ZodEnum<{
+            high: "high";
+            normal: "normal";
+            low: "low";
+        }>>;
         max_memory_mb: z.ZodOptional<z.ZodNumber>;
-        estimated_duration: z.ZodOptional<z.ZodEnum<["fast", "medium", "slow"]>>;
-    }, "strip", z.ZodTypeAny, {
-        priority: "high" | "normal" | "low";
-        max_memory_mb?: number | undefined;
-        estimated_duration?: "fast" | "medium" | "slow" | undefined;
-    }, {
-        priority?: "high" | "normal" | "low" | undefined;
-        max_memory_mb?: number | undefined;
-        estimated_duration?: "fast" | "medium" | "slow" | undefined;
+        estimated_duration: z.ZodOptional<z.ZodEnum<{
+            fast: "fast";
+            medium: "medium";
+            slow: "slow";
+        }>>;
+    }, z.core.$strip>>;
+    memory_scope: z.ZodDefault<z.ZodEnum<{
+        none: "none";
+        project: "project";
+        user: "user";
     }>>;
-    memory_scope: z.ZodDefault<z.ZodEnum<["project", "user", "none"]>>;
     prompt: z.ZodString;
-}, "strict", z.ZodTypeAny, {
-    name: string;
-    type: "on-demand" | "continuous";
-    version: string;
-    description: string;
-    goal: string;
-    triggers: ("on_commit" | "on_check" | "on_demand" | "on_init")[];
-    expose_as: ("subagent" | "skill" | "command")[];
-    model_tier: "fast" | "reasoning" | "deep" | "inherit";
-    model_overrides: Record<string, string>;
-    capabilities: ("read" | "write" | "exec" | "web_search" | "web_fetch")[];
-    requires_fresh_context: boolean;
-    skills: {
-        name: string;
-        path: string;
-    }[];
-    mcp_servers: {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        auth: "none" | "env" | "oauth";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }[];
-    parallelizable: boolean;
-    resource_hint: {
-        priority: "high" | "normal" | "low";
-        max_memory_mb?: number | undefined;
-        estimated_duration?: "fast" | "medium" | "slow" | undefined;
-    };
-    memory_scope: "none" | "project" | "user";
-    prompt: string;
-    command?: string | undefined;
-}, {
-    name: string;
-    type: "on-demand" | "continuous";
-    description: string;
-    goal: string;
-    model_tier: "fast" | "reasoning" | "deep" | "inherit";
-    capabilities: ("read" | "write" | "exec" | "web_search" | "web_fetch")[];
-    prompt: string;
-    command?: string | undefined;
-    version?: string | undefined;
-    triggers?: ("on_commit" | "on_check" | "on_demand" | "on_init")[] | undefined;
-    expose_as?: ("subagent" | "skill" | "command")[] | undefined;
-    model_overrides?: Record<string, string> | undefined;
-    requires_fresh_context?: boolean | undefined;
-    skills?: {
-        name: string;
-        path: string;
-    }[] | undefined;
-    mcp_servers?: {
-        name: string;
-        mode: "url" | "npx" | "stdio";
-        command?: string | undefined;
-        url?: string | undefined;
-        package?: string | undefined;
-        auth?: "none" | "env" | "oauth" | undefined;
-        env_var?: string | undefined;
-        base?: boolean | undefined;
-    }[] | undefined;
-    parallelizable?: boolean | undefined;
-    resource_hint?: {
-        priority?: "high" | "normal" | "low" | undefined;
-        max_memory_mb?: number | undefined;
-        estimated_duration?: "fast" | "medium" | "slow" | undefined;
-    } | undefined;
-    memory_scope?: "none" | "project" | "user" | undefined;
-}>;
+}, z.core.$strict>;
 export type Subagent = z.infer<typeof subagentSchema>;
 /**
  * The slash/skill command name for an agent: the explicit `command` when set,
