@@ -81,21 +81,39 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Clone harness-brain (best effort)
+        id: clone
         continue-on-error: true
         env:
-          # Compare against the matching branch (the brain's changes live on the
-          # same feature branch pre-merge); fall back to the default branch.
+          # Compare against the matching branch (a companion PR's changes
+          # live on a same-purpose branch pre-merge, though — since each
+          # repo's branch name is generated independently — not always a
+          # same-named one); fall back to the default branch otherwise, and
+          # record which happened so the verify step below knows how much
+          # to trust a drift finding.
           BRAIN_BRANCH: ${{ github.head_ref || github.ref_name }}
           BRAIN_URL: https://github.com/exponen-agi/harness-brain.git
         run: |
-          git clone --depth 1 --branch "$BRAIN_BRANCH" "$BRAIN_URL" "$RUNNER_TEMP/harness-brain" \
-            || git clone --depth 1 "$BRAIN_URL" "$RUNNER_TEMP/harness-brain"
+          set -e
+          if git clone --depth 1 --branch "$BRAIN_BRANCH" "$BRAIN_URL" "$RUNNER_TEMP/harness-brain"; then
+            echo "exact_branch=true" >> "$GITHUB_OUTPUT"
+          else
+            git clone --depth 1 "$BRAIN_URL" "$RUNNER_TEMP/harness-brain"
+            echo "exact_branch=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Verify templates/brain matches harness-brain
+        env:
+          BRAIN_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          set -e
           if [ ! -d "$RUNNER_TEMP/harness-brain" ]; then
             echo "::notice::harness-brain not reachable from CI — skipping drift check. Run \`npm run verify:brain-template\` locally against a sibling checkout."
             exit 0
           fi
-          node scripts/check-brain-template.mjs "$RUNNER_TEMP/harness-brain"
+          if node scripts/check-brain-template.mjs "$RUNNER_TEMP/harness-brain"; then
+            exit 0
+          fi
+          if [ "${{ steps.clone.outputs.exact_branch }}" = "true" ]; then
+            echo "::error::templates/brain/ has drifted from the same-named companion branch on harness-brain — see the comparison above."
+            exit 1
+          fi
+          echo "::warning::templates/brain/ differs from harness-brain's default branch, but no branch named '$BRAIN_BRANCH' exists there to compare against instead — expected while a companion PR with a different branch name is still open on harness-brain. Not failing the build; this gets a real comparison once branch names line up or the companion PR merges. Verify by hand with \`npm run verify:brain-template\` against the actual companion checkout."
