@@ -54,6 +54,26 @@ jobs:
       - name: Audit (fail on high+)
         run: npm audit --audit-level=high
 
+  dist-integrity:
+    name: dist/ matches src/
+    # Linux-only, like brain-template-drift below: `git status --porcelain`
+    # over a freshly built dist/ can misreport identical content as changed
+    # on Windows runners because of core.autocrlf line-ending rewriting, so we
+    # keep this check on the one platform where that class of false positive
+    # can't happen. Cross-platform build correctness is already covered by
+    # the matrixed build-test job above; this job only checks that whoever
+    # last committed dist/ actually ran the build.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: Verify dist/ is not stale
+        run: npm run verify:dist
+
   brain-template-drift:
     name: brain template parity
     runs-on: ubuntu-latest

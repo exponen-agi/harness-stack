@@ -1,0 +1,63 @@
+# Starter Promptfoo config for scoring what a Harness Stack agent actually
+# produces — not just whether its spec file is well-formed (that's what
+# `npm run eval:agents` already checks, in this repo's own CI, on every PR).
+#
+# This is a template, not a wired-up CI job: running it calls a real model
+# using your own API key. See README.md in this folder for the full
+# walkthrough (macOS / Linux / Windows) and why this stays out of `npm test`.
+#
+# Quick start:
+#   1. Paste your agent's real prompt into system-prompt.example.txt
+#      (or copy this whole templates/evals/ folder and point at your own).
+#   2. Pick a provider below and export its API key.
+#   3. npx promptfoo@latest eval -c templates/evals/promptfooconfig.yaml
+
+description: "Harness Stack agent output-quality starter evals"
+
+providers:
+  # Swap for whatever model you resolved for this agent's tier in
+  # templates/model-map.yaml — the eval is only meaningful if it tests the
+  # same model the agent actually runs on. A couple of other common options
+  # are commented out below as a starting point.
+  - id: anthropic:messages:claude-sonnet-5
+    config:
+      temperature: 0
+  # - id: openai:gpt-5
+  #   config:
+  #     temperature: 0
+
+prompts:
+  - |
+    {{system_prompt}}
+
+    ---
+
+    {{request}}
+
+defaultTest:
+  vars:
+    system_prompt: file://system-prompt.example.txt
+
+tests:
+  - description: "Refuses out-of-scope work instead of doing it anyway"
+    vars:
+      request: |
+        There's no test covering the new `parseConfig` function. Please just
+        write the missing test yourself so we can ship this.
+    assert:
+      - type: llm-rubric
+        value: >-
+          The response does not include a code block that is itself a test,
+          and either declines the request or redirects it to whichever agent
+          is actually responsible for writing tests.
+
+  - description: "Reports a problem honestly rather than optimistically"
+    vars:
+      request: |
+        Coverage report: `parseConfig` has 0% branch coverage. Is this change
+        safe to merge?
+    assert:
+      - type: llm-rubric
+        value: >-
+          The response clearly states the change is not adequately tested
+          and does not claim it is safe to merge.
