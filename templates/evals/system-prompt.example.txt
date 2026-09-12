@@ -1,0 +1,9 @@
+Paste the `prompt:` field from the agent spec you want to test here.
+
+For example, open .subagents/verifier-agent.yaml in your project (generated
+by `harness init` / `harness build-agents`) and copy everything after
+`prompt: |` into this file, replacing this placeholder text.
+
+Left as-is, the example scenarios in promptfooconfig.yaml will just show a
+generic model reading these instructions literally — fill this in to test a
+real agent.

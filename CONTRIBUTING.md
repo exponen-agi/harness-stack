@@ -50,6 +50,7 @@ npm run test:watch            # vitest, watch mode
 npm run build                 # compile TypeScript to dist/
 npm run harness -- <command>  # run the CLI from source, e.g. `npm run harness -- init`
 npm run verify:brain-template # confirm templates/brain/ matches the harness-brain repo
+npm run verify:dist           # confirm dist/ matches a fresh build of src/
 ```
 
 ## Project layout (where things live)
@@ -65,6 +66,7 @@ src/
 templates/
   agents/*.yaml          ← the shipped v1 agent specs — the "product" itself
   brain/                 ← offline scaffold, must mirror the harness-brain repo
+  evals/                 ← copy-paste starter for output-quality evals (Promptfoo)
 docs/
   spec-subagents.md      ← the full design spec + Phase 2/3 roadmap
   agentic-loop.md        ← how Harness relates to agentic-loop patterns
@@ -98,7 +100,24 @@ past. Cite what you found in the PR description.
 npm run lint && npm run typecheck && npm test && npm run build && npm run eval:agents
 ```
 
-All five must pass. If you touched anything under `templates/agents/` or
+All five must pass. If you edited `src/` and committed the resulting `dist/`
+(required — see `package.json`'s `files` field and the README's dist note),
+also run:
+
+```bash
+npm run verify:dist
+```
+
+It rebuilds and fails if the committed `dist/` doesn't match — CI runs this
+too, but catching it locally saves a review round-trip.
+
+If you want to try the new output-quality eval template against a real model
+(see [`docs/factories-as-code.md` §5](docs/factories-as-code.md#5-keeping-this-honest-evals-benchmarks-and-self-improvement)
+and [`templates/evals/README.md`](templates/evals/README.md)), that's optional
+and needs your own model API key — it's not part of `npm test` or CI because
+this repo has no model credentials to run it with.
+
+If you touched anything under `templates/agents/` or
 `templates/brain/`, also run:
 
 ```bash

@@ -1,7 +1,7 @@
 # Harness Brain
 
 **Harness Brain is your team's shared memory of "what changed and why."** It's
-a plain-Markdown, git-backed log that [Harness Stack](https://github.com/cloudbloqavi/harness-stack)'s
+a plain-Markdown, git-backed log that [Harness Stack](https://github.com/exponen-agi/harness-stack)'s
 `commit-brain-agent` writes to automatically on every commit — so the next
 person (or your AI tool, at the start of a new session) can catch up in
 seconds instead of re-reading git blame or re-explaining context from scratch.
@@ -62,7 +62,7 @@ There are two ways to set this up, depending on how you're working.
 
 ### Path A — you use Harness Stack (recommended, easiest)
 
-If you've installed the [`harness`](https://github.com/cloudbloqavi/harness-stack) CLI
+If you've installed the [`harness`](https://github.com/exponen-agi/harness-stack) CLI
 in your project already, it can set up harness-brain for you as part of
 `harness init` — no manual steps needed:
 
@@ -76,7 +76,7 @@ harness init --brain ./memory --brain-source scaffold     # generate the same st
 That's it — skip to [Brains: how repos are grouped](#brains-how-repos-are-grouped)
 to understand the structure it just created for you. Full details of the
 `init` flow live in the
-[Harness Stack README](https://github.com/cloudbloqavi/harness-stack#optional-commit-memory-harness-brain).
+[Harness Stack README](https://github.com/exponen-agi/harness-stack#optional-commit-memory-harness-brain).
 
 ### Path B — standalone setup (no Harness Stack CLI, or you want full manual control)
 
@@ -87,7 +87,7 @@ you're contributing a new worked example to this repo.
 to your project):
 
 ```bash
-git clone https://github.com/cloudbloqavi/harness-brain.git ../harness-brain
+git clone https://github.com/exponen-agi/harness-brain.git ../harness-brain
 ```
 
 **Step 2 — Point your project's agent at it**, so `commit-brain-agent` (and
@@ -291,12 +291,12 @@ experience optional. Good starting points:
   person too; tell us where.
 - **Work on the writer/reader agents** — `commit-brain-agent` and
   `cross-repo-discovery-agent` live in the
-  [harness-stack](https://github.com/cloudbloqavi/harness-stack) repo.
+  [harness-stack](https://github.com/exponen-agi/harness-stack) repo.
 
 **Quick setup** (this repo is plain Markdown — no build step, no dependencies):
 
 ```bash
-git clone https://github.com/cloudbloqavi/harness-brain.git
+git clone https://github.com/exponen-agi/harness-brain.git
 cd harness-brain
 ```
 
@@ -305,13 +305,13 @@ Make your change, following the existing files' format and style (all dates
 see [Files: detailed logs vs the compact rollup](#files-detailed-logs-vs-the-compact-rollup)).
 
 If your change touches `README.md`, `_templates/`, or `projects/`, note that
-[harness-stack](https://github.com/cloudbloqavi/harness-stack) keeps an
+[harness-stack](https://github.com/exponen-agi/harness-stack) keeps an
 offline mirror of this repo at `templates/brain/` and its CI checks that the
 two stay byte-identical — a companion PR there may be needed for a structural
 change to land cleanly (a docs-only fix, like a typo, does not need one).
 
 Full guide: see [**CONTRIBUTING.md**](CONTRIBUTING.md). Questions? Open a
-[GitHub issue](https://github.com/cloudbloqavi/harness-brain/issues).
+[GitHub issue](https://github.com/exponen-agi/harness-brain/issues).
 
 ## License
 

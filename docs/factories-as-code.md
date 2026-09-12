@@ -184,11 +184,16 @@ instead of leaving agent quality to "looks fine on review":
 - This is deliberately a **starting point, not a finish line**. Today's checks
   are about spec *hygiene* (does the spec make sense on its face) rather than
   output *quality* (is what the agent actually produces any good). The
-  natural next rungs on this ladder, tracked as future work:
+  natural next rungs on this ladder:
   - **Output-quality evals** — running each agent against a small set of
     realistic scenarios and scoring the result, using an open-source eval
     runner (e.g. [Promptfoo](https://www.promptfoo.dev/)) rather than
-    hand-inspecting transcripts.
+    hand-inspecting transcripts. A copy-paste starting point for this lives
+    at [`templates/evals/`](../templates/evals/README.md) — it's a template,
+    not something wired into this repo's own CI, because scoring real output
+    means calling a real model with your own API key, and this repo has no
+    model credentials to run it with. See that folder's README for the
+    eval-gated self-improvement loop this is meant to grow into.
   - **A feedback loop from harness-brain** — `commit-brain-agent` already
     writes a dated, human-readable log of what every agent did and why (see
     the sibling [harness-brain](https://github.com/exponen-agi/harness-brain)
@@ -227,3 +232,39 @@ on macOS, Linux, and Windows. A couple of specific notes:
 - Our own CI (`.github/workflows/ci.yml`) runs the full test/lint/build/eval
   chain on `ubuntu-latest`, `macos-latest`, *and* `windows-latest` for every
   pull request — so "works on my machine" gets caught before it ships.
+- **`npm run verify:dist`** rebuilds and fails if the committed `dist/`
+  doesn't match — this one runs Linux-only in CI (see the comment on the
+  `dist-integrity` job in `ci.yml`), because comparing a fresh build against
+  a git checkout with `git status` is exactly the kind of check that can
+  misreport a false difference on Windows over a line-ending rewrite, the
+  same class of bug the sibling harness-brain repo already hit and fixed in
+  its own entry validator.
+
+## 7. This isn't just us
+
+If "factories as code" sounds like a niche idea Harness Stack invented, it
+isn't — naming it helps, but every piece of it is something the wider
+industry is converging on independently, as of late 2025 / 2026:
+
+- **Agents defined as versioned, declarative files** — the same shape as
+  this repo's `.subagents/*.yaml` — is what Harness (the CI/CD vendor,
+  unrelated name, same idea) calls an "Agent Development Lifecycle," and
+  what a growing list of coding tools (Claude Code, Cursor, Codex, Copilot,
+  Aider, Windsurf, Zed and others) read from a shared, cross-tool
+  [`AGENTS.md`](https://agents.md/) convention rather than each inventing
+  their own format.
+- **"Harness" as a term for everything around the model** — prompts, tools,
+  permissions, memory, verification — is standard industry usage, not a
+  metaphor unique to this project; see
+  [`ai-boost/awesome-harness-engineering`](https://github.com/ai-boost/awesome-harness-engineering)
+  for a good survey of the discipline.
+- **Eval-gated changes as the safe way to let an agent improve itself** —
+  a proposed change only ships once it beats a fixed, held-out set of
+  scenarios — is the same pattern behind tools like
+  [DSPy](https://dspy.ai/)'s prompt optimizers; §5's roadmap deliberately
+  stops at that same gate rather than any open-ended, ungated
+  "self-improvement."
+
+The one-line takeaway: adopting this pattern isn't a bet on one vendor or one
+model. It's a bet on plain, versioned, testable files — which is also why
+none of this requires you to have any AI background to read or review.
