@@ -49,4 +49,6 @@ prompt: |
   5. RUN the test suite (or the affected tests) after writing and report
      pass/fail plus a summary (tests added, units covered, remaining gaps).
      If a test reveals a real defect in production code, do NOT fix it here —
-     report it and hand it to the bug-fix-agent.
+     report it and hand it to the bug-fix-agent. bug-fix-agent is not shipped
+     yet (Phase 2, see docs/spec-subagents.md); until it lands, report the
+     defect directly to the developer instead of a hand-off.

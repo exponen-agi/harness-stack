@@ -29,6 +29,15 @@ export const TRIGGERS = [
  *   - `command`  — a manual slash command the developer invokes directly.
  */
 export const EXPOSURES = ["subagent", "skill", "command"];
+/**
+ * Structural roles that carry their own eval/build rules, independent of the
+ * agent's `name`. Today only `verifier` is defined: it marks an agent as the
+ * independent judge in the pre-commit verification pair, and evaluateAgentSpec
+ * (scripts/eval-agents.mjs) bans `write` from its capabilities on this field
+ * — not on a name substring match, so renaming a verifier agent can't
+ * silently drop the check.
+ */
+export const ROLES = ["verifier"];
 const semver = z
     .string()
     .regex(/^\d+\.\d+\.\d+$/, "version must be semver, e.g. 1.0.0");
@@ -88,6 +97,8 @@ export const subagentSchema = z
     version: semver.default("1.0.0"),
     description: z.string().min(1),
     goal: z.string().min(1),
+    /** Structural role, if any — see ROLES doc comment. Optional. */
+    role: z.enum(ROLES).optional(),
     // Execution model
     type: z.enum(AGENT_TYPES),
     triggers: z.array(z.enum(TRIGGERS)).default(["on_demand"]),

@@ -178,9 +178,21 @@ instead of leaving agent quality to "looks fine on review":
   accidentally empty or still has a `TODO` in it, a capability that doesn't
   exist, a trigger that isn't wired to anything, an agent whose declared
   capabilities contradict its own design (like a `verifier` that can write —
-  defeating the whole point of having an independent judge). This runs
-  automatically in CI, on every pull request, on Linux, macOS, *and*
-  Windows — nobody has to remember to run it by hand.
+  defeating the whole point of having an independent judge — checked against
+  an explicit `role: verifier` field, not a guess based on the agent's name),
+  or an agent that leans on `web_search`/`web_fetch`/an MCP server without
+  declaring `requires_fresh_context: true`. This runs automatically in CI, on
+  every pull request, on Linux, macOS, *and* Windows — nobody has to remember
+  to run it by hand.
+- **`npm test`'s golden-file build benchmark** (`tests/build-snapshot.test.ts`)
+  is the next rung: it renders the full roster for every shipped platform and
+  compares the output byte-for-byte against a committed snapshot. Spec
+  hygiene can be perfect and the *compiled* file a developer's AI tool
+  actually reads can still shift unexpectedly — a template typo, an adapter
+  regression, a `model-map.yaml` edit with an unintended side effect. This
+  catches that class of bug with no model credentials and no network call,
+  the same way `eval:agents` does, and a reviewer can read exactly what
+  changed from the snapshot diff in the PR.
 - This is deliberately a **starting point, not a finish line**. Today's checks
   are about spec *hygiene* (does the spec make sense on its face) rather than
   output *quality* (is what the agent actually produces any good). The
@@ -257,7 +269,25 @@ industry is converging on independently, as of late 2025 / 2026:
   permissions, memory, verification — is standard industry usage, not a
   metaphor unique to this project; see
   [`ai-boost/awesome-harness-engineering`](https://github.com/ai-boost/awesome-harness-engineering)
-  for a good survey of the discipline.
+  for a good survey of the discipline. It's worth being precise about *which*
+  "harness" is meant, though, since the word now covers two different things:
+  Harness (the CI/CD vendor)'s **Agent DLC** product, and the more general
+  discipline of **harness engineering** — usually split into the *inner
+  harness* (what ships built into your AI coding tool) and the *outer
+  harness* (the rules files, checks, review agents, and pipelines your team
+  owns on top of it). Harness Stack is an outer-harness compiler in that
+  sense: it never touches the model itself, only the versioned files around
+  it.
+- **A shared, cross-tool `AGENTS.md`** is no longer a niche convention — by
+  2026 it's read by most mainstream coding agents (Claude Code, Cursor,
+  Codex, Copilot, Gemini CLI, Aider, Windsurf, Zed, and others), which is
+  exactly the kind of N-tools-one-file problem `harness build-agents`
+  already solves for `.subagents/*.yaml`. And **Agent Skills** (the portable
+  `SKILL.md` format this repo already emits for Cursor/Codex/Antigravity) has
+  become a genuine cross-vendor standard rather than a single tool's
+  extension point — further evidence that betting on plain, versioned files
+  over any one vendor's proprietary format is the safer long-term default,
+  not just this project's opinion.
 - **Eval-gated changes as the safe way to let an agent improve itself** —
   a proposed change only ships once it beats a fixed, held-out set of
   scenarios — is the same pattern behind tools like

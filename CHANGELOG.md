@@ -1,0 +1,36 @@
+# Changelog
+
+All notable changes to Harness Stack are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project is
+pre-1.0, so breaking changes may still land in a minor version.
+
+## [Unreleased]
+
+### Added
+
+- A golden-file build benchmark (`tests/build-snapshot.test.ts`): snapshots
+  the compiled roster for every shipped platform so a spec, template-map, or
+  adapter change that shifts generated output is caught in CI, with no model
+  credentials or network call needed.
+- An explicit `role: verifier` schema field. `scripts/eval-agents.mjs` now
+  bans `write` capabilities on an agent by that structural field, falling
+  back to the old name-substring heuristic for specs that don't set it.
+- A fresh-context consistency check in `npm run eval:agents`: an agent spec
+  that uses `web_search`, `web_fetch`, or declares an `mcp_servers` entry
+  must also set `requires_fresh_context: true`.
+- Test coverage for `src/resolution/capability-resolver.ts` and
+  `src/schema.ts` (previously exercised only incidentally through other
+  tests).
+
+### Fixed
+
+- `verifier-agent`, `test-author-agent`, and `drift-reviewer-agent` no longer
+  hand code defects to a `bug-fix-agent` that isn't shipped yet — they now
+  report the defect directly to the developer until that Phase 2 agent
+  lands.
+
+## [0.1.0] — initial public release
+
+- v1 sub-agent roster (9 agents), platform-agnostic build pipeline, resolver
+  suite (model tier, capability, trigger, fresh-context), 5 platform
+  adapters, `harness` CLI, and the `harness-brain` commit-memory integration.

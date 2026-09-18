@@ -10,6 +10,7 @@ description: >
   The executable half of the pre-commit verification pair (runs in parallel
   with the drift-reviewer-agent).
 goal: Independently verify a change is covered by passing tests; delegate missing-test authoring, own the verdict.
+role: verifier
 type: on-demand
 triggers: [on_check, on_demand]
 expose_as: [subagent, skill, command]
@@ -53,7 +54,9 @@ prompt: |
        PASS    — change is covered and the relevant tests are green
        FAIL    — failing tests (list them) or unclosed high-risk gaps
        BLOCKED — could not run (state exactly why)
-     If a test reveals a real defect in production code, report it and hand it
-     to the bug-fix-agent — do not fix it here. Hand the verdict to the
-     commit-brain-agent so it lands in harness-brain as the change's audit
-     trail — closing the "quiet success" gap.
+     If a test reveals a real defect in production code, report it plainly
+     and hand it to the bug-fix-agent — do not fix it here. bug-fix-agent is
+     not shipped yet (Phase 2, see docs/spec-subagents.md); until it lands,
+     report the defect directly to the developer instead of a hand-off.
+     Hand the verdict to the commit-brain-agent so it lands in harness-brain
+     as the change's audit trail — closing the "quiet success" gap.

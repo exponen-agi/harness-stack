@@ -56,7 +56,7 @@ describe("evaluateAgentSpec", () => {
     expect(issues.some((i) => i.includes("unknown trigger"))).toBe(true);
   });
 
-  it("fails a verifier agent that includes write in its capabilities", () => {
+  it("fails a verifier agent that includes write in its capabilities (name heuristic)", () => {
     const issues = evaluateAgentSpec(
       validSpec({
         name: "something-verifier-agent",
@@ -66,6 +66,55 @@ describe("evaluateAgentSpec", () => {
       CAPABILITIES,
     );
     expect(issues.some((i) => i.includes("must not include"))).toBe(true);
+  });
+
+  it("fails an agent with role: verifier that includes write, even with a non-matching name", () => {
+    const issues = evaluateAgentSpec(
+      validSpec({
+        name: "independent-judge-agent",
+        role: "verifier",
+        capabilities: ["read", "write"],
+      }),
+      validTriggers,
+      CAPABILITIES,
+    );
+    expect(issues.some((i) => i.includes("must not include"))).toBe(true);
+  });
+
+  it("fails a spec that uses web_search but doesn't set requires_fresh_context", () => {
+    const issues = evaluateAgentSpec(
+      validSpec({
+        capabilities: ["read", "web_search"],
+        requires_fresh_context: false,
+      }),
+      validTriggers,
+      CAPABILITIES,
+    );
+    expect(issues.some((i) => i.includes("requires_fresh_context"))).toBe(true);
+  });
+
+  it("fails a spec that declares mcp_servers but doesn't set requires_fresh_context", () => {
+    const issues = evaluateAgentSpec(
+      validSpec({
+        mcp_servers: [{ name: "context7", mode: "url", url: "https://mcp.context7.com/mcp" }],
+        requires_fresh_context: false,
+      }),
+      validTriggers,
+      CAPABILITIES,
+    );
+    expect(issues.some((i) => i.includes("requires_fresh_context"))).toBe(true);
+  });
+
+  it("passes a spec that uses web_search and correctly sets requires_fresh_context", () => {
+    const issues = evaluateAgentSpec(
+      validSpec({
+        capabilities: ["read", "web_search"],
+        requires_fresh_context: true,
+      }),
+      validTriggers,
+      CAPABILITIES,
+    );
+    expect(issues).toEqual([]);
   });
 
   it("returns zero issues for every shipped templates/agents/*.yaml spec", async () => {

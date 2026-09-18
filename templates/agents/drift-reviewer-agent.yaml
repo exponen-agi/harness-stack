@@ -55,7 +55,9 @@ prompt: |
      behaviour to make a doc true — code is the source of truth and the doc
      follows it. If instead the human says the doc captured the real intent and
      the CODE is wrong, report it as a defect for hand-off (bug-fix-agent); do
-     not fix the code here.
+     not fix the code here. bug-fix-agent is not shipped yet (Phase 2, see
+     docs/spec-subagents.md); until it lands, report the defect directly to
+     the developer instead of a hand-off.
 
   5. SUMMARISE: drift found, fixed, deferred, and any code defects handed off.
      Hand the result to the commit-brain-agent so it lands in harness-brain as

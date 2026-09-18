@@ -77,11 +77,31 @@ export function evaluateAgentSpec(spec, validTriggers, knownCapabilities) {
         issues.push(`unknown capability "${cap}" (expected one of: ${knownCapabilities.join(", ")})`);
       }
     }
-    if (name.includes("verifier") && capabilities.includes("write")) {
+    // Prefer the explicit `role: verifier` field — a structural marker that
+    // survives a rename. Fall back to the old name-substring heuristic only
+    // for specs that don't (yet) set `role`, so this stays backward-compatible.
+    const isVerifier = spec?.role === "verifier" || name.includes("verifier");
+    if (isVerifier && capabilities.includes("write")) {
       issues.push(
         `verifier agent "${name}" must not include "write" in capabilities (can't grade its own homework)`,
       );
     }
+  }
+
+  // Fresh-context mandate (docs/spec-subagents.md): any agent that leans on
+  // web search, web fetch, or an MCP server must say so via
+  // requires_fresh_context, or the promise "fresh-context agents always
+  // resolve search + Context7" silently stops being true for that agent.
+  const declaredCapabilities = Array.isArray(capabilities) ? capabilities : [];
+  const mcpServers = spec?.mcp_servers;
+  const needsFreshContext =
+    declaredCapabilities.includes("web_search") ||
+    declaredCapabilities.includes("web_fetch") ||
+    (Array.isArray(mcpServers) && mcpServers.length > 0);
+  if (needsFreshContext && spec?.requires_fresh_context !== true) {
+    issues.push(
+      `agent "${name}" uses web_search/web_fetch/mcp_servers but does not set "requires_fresh_context: true"`,
+    );
   }
 
   const triggers = spec?.triggers;
