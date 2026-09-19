@@ -22,11 +22,24 @@ export type Trigger = (typeof TRIGGERS)[number];
  */
 export declare const EXPOSURES: readonly ["subagent", "skill", "command"];
 export type Exposure = (typeof EXPOSURES)[number];
+/**
+ * Structural roles that carry their own eval/build rules, independent of the
+ * agent's `name`. Today only `verifier` is defined: it marks an agent as the
+ * independent judge in the pre-commit verification pair, and evaluateAgentSpec
+ * (scripts/eval-agents.mjs) bans `write` from its capabilities on this field
+ * — not on a name substring match, so renaming a verifier agent can't
+ * silently drop the check.
+ */
+export declare const ROLES: readonly ["verifier"];
+export type Role = (typeof ROLES)[number];
 export declare const subagentSchema: z.ZodObject<{
     name: z.ZodString;
     version: z.ZodDefault<z.ZodString>;
     description: z.ZodString;
     goal: z.ZodString;
+    role: z.ZodOptional<z.ZodEnum<{
+        verifier: "verifier";
+    }>>;
     type: z.ZodEnum<{
         "on-demand": "on-demand";
         continuous: "continuous";

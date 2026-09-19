@@ -271,10 +271,19 @@ export HARNESS_BRAIN_PATH=/path/to/harness-brain
 
 ## How it is read
 
-The `cross-repo-discovery-agent` runs at session start. For the current repo it
-locates the repo's brain, reads the recent compact rollup plus the detailed logs
-of every repo in that brain (related repos, read together), and produces a
-digest. A repo in its own brain is digested in isolation.
+Today, reading the brain is manual: point your AI tool at the compact rollup
+(`<brain>/projects/<brain-n>/<YY-MM-DD>-HAR-compact.md`) and, when you need the
+full story behind an entry, the matching detailed log
+(`<brain>/projects/<brain-n>/<repo>/<YY-MM-DD>-HAR.md`). `harness seed` in
+harness-stack already does this for the current repo — see
+[`docs/agentic-loop.md`](https://github.com/exponen-agi/harness-stack/blob/main/docs/agentic-loop.md).
+
+A `cross-repo-discovery-agent` that automates this — running at session start,
+locating the repo's brain, and producing a digest across every repo in that
+brain (related repos read together; a repo in its own brain digested in
+isolation) — is planned but **not shipped yet** (Phase 2; see
+[`docs/spec-subagents.md`](https://github.com/exponen-agi/harness-stack/blob/main/docs/spec-subagents.md)
+in harness-stack).
 
 <a id="contributing"></a>
 
@@ -289,9 +298,10 @@ experience optional. Good starting points:
 - **Improve `_templates/`** — the entry formats that every real brain follows.
 - **Improve this README** — if a step confused you, it'll confuse the next
   person too; tell us where.
-- **Work on the writer/reader agents** — `commit-brain-agent` and
-  `cross-repo-discovery-agent` live in the
-  [harness-stack](https://github.com/exponen-agi/harness-stack) repo.
+- **Work on the writer agent** — `commit-brain-agent` (shipped) lives in the
+  [harness-stack](https://github.com/exponen-agi/harness-stack) repo. The
+  reader agent, `cross-repo-discovery-agent`, is planned but not built yet —
+  a good first Phase 2 contribution.
 
 **Quick setup** (this repo is plain Markdown — no build step, no dependencies):
 

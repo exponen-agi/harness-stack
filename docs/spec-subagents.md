@@ -61,6 +61,12 @@ The authoritative schema is implemented and validated in
 `goal`, `type`, `model_tier`, `capabilities`, `prompt`. Two things make a spec
 portable: `model_tier` (not a model name) and `capabilities` (not tool names).
 
+An optional `role` field marks structural roles that carry their own
+build/eval rules independent of the agent's `name` — today only
+`role: verifier`, which `scripts/eval-agents.mjs` uses to ban `write` from
+that agent's capabilities (falling back to a name-substring heuristic for
+older specs that don't set it, so this stays backward-compatible).
+
 ## Platform-agnostic model resolution
 
 Agents declare a tier (`fast` / `reasoning` / `deep` / `inherit`). The adapter

@@ -16,6 +16,33 @@ credentials to run it with, so it stays a template you copy into your own
 project and run yourself — locally, or in your own project's CI once you've
 added your own secret.
 
+This repo's own CI instead runs two credential-free layers: `npm run
+eval:agents` (spec hygiene) and the golden-file build benchmark
+(`tests/build-snapshot.test.ts`, run by `npm test`), both described in
+[`docs/factories-as-code.md` §5](../../docs/factories-as-code.md#5-keeping-this-honest-evals-benchmarks-and-self-improvement).
+Neither calls a model, so neither can catch a bad *response* — only a bad
+*spec* or a bad *compile*.
+
+## A credential-free middle tier, if you want one before paying for tokens
+
+Promptfoo itself doesn't require a model call for every assertion. Two
+mechanisms are worth knowing before you reach for `llm-rubric` (which does):
+
+- **Deterministic assertions** — `contains`, `equals`, `regex`, `is-json`,
+  `javascript`, `python`, and others check the *shape* of a response with
+  plain code, no model involved, so they cost nothing and never flake.
+- **The `exec:` provider** runs a local command (e.g. this repo's own
+  `harness build-agents`, or a small wrapper script) as the "model under
+  test" and asserts on its stdout — useful for checking a generated file's
+  *shape* (front matter present, no leftover template placeholder, expected
+  section headers) without ever calling a real model.
+
+Reach for a real, paid `llm-rubric` provider (as `promptfooconfig.yaml` in
+this folder does today) only once you actually need to judge *meaning* —
+"did the agent refuse the out-of-scope request," not just "is the output
+valid YAML." Mixing both tiers in one config file is fine — Promptfoo only
+calls a model for the assertions that ask for one.
+
 ## What's here
 
 - **`promptfooconfig.yaml`** — a minimal, runnable
