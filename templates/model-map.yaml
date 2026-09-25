@@ -4,23 +4,23 @@
 # platforms ship new models; nothing else in .subagents/ changes.
 # Run `harness update` (when available) to refresh it from the shipped default.
 #
-# Lineups below are current as of August 2026 and WILL drift — edit freely.
+# Lineups below are current as of September 2026 and WILL drift — edit freely.
 #
-# Claude model IDs always carry the "claude-" prefix (e.g. "claude-opus-5",
-# not "opus-5") — a bare tier name is not a real model ID and will fail at
+# Claude model IDs always carry the "claude-" prefix (e.g. "claude-opus-5-5",
+# not "opus-5-5") — a bare tier name is not a real model ID and will fail at
 # inference time. tests/model-map-template.test.ts enforces this for the
 # claude-code block so this class of bug can't ship silently again.
 
 claude-code:
   fast:      claude-haiku-4-5-20251001
   reasoning: claude-sonnet-5
-  deep:      claude-opus-5
+  deep:      claude-opus-5-5
   inherit:   inherit
 
 antigravity:
   fast:      gemini-3.5-flash
   reasoning: gemini-3-pro
-  deep:      gemini-3-pro          # or claude-opus-5 if Claude routing enabled
+  deep:      gemini-3-pro          # or claude-opus-5-5 if Claude routing enabled
   inherit:   inherit
 
 codex:
