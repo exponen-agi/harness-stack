@@ -39,11 +39,14 @@ describe("listTracked", () => {
         "not-tracked/ignored.md": "should not appear",
       });
       const found = await listTracked(base, ["README.md", "_templates", "projects"]);
+      // listTracked joins path segments with path.join, which is
+      // backslash-separated on Windows — build expectations the same way
+      // rather than hardcoding "/", so this test holds on every OS.
       expect(found).toEqual([
         "README.md",
-        "_templates/YY-MM-DD-HAR.md",
-        "projects/brain-1/README.md",
-        "projects/brain-1/ledger-api/README.md",
+        path.join("_templates", "YY-MM-DD-HAR.md"),
+        path.join("projects", "brain-1", "README.md"),
+        path.join("projects", "brain-1", "ledger-api", "README.md"),
       ]);
     } finally {
       await fs.rm(base, { recursive: true, force: true });
@@ -69,7 +72,7 @@ describe("listTracked", () => {
         "not-tracked/ignored.md": "should not appear",
       });
       const found = await listTracked(base);
-      expect(found).toEqual(["README.md", "projects/brain-1/README.md"]);
+      expect(found).toEqual(["README.md", path.join("projects", "brain-1", "README.md")]);
     } finally {
       await fs.rm(base, { recursive: true, force: true });
     }
