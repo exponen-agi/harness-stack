@@ -48,7 +48,12 @@ calls a model for the assertions that ask for one.
 - **`promptfooconfig.yaml`** — a minimal, runnable
   [Promptfoo](https://www.promptfoo.dev/) config. Promptfoo was picked
   because it needs no Python/ML stack, no separate service to run, and no
-  code — just this one YAML file and a CLI command.
+  code — just this one YAML file and a CLI command. In March 2026 OpenAI
+  acquired the company behind Promptfoo; the team committed to keeping the
+  core CLI/library open-source under its existing MIT license and
+  model-agnostic (it can eval Anthropic, OpenAI, Google, or local models
+  side by side), so this template needs no changes on account of that — worth
+  knowing if your team is weighing dependency risk before adopting it.
 - **`system-prompt.example.txt`** — an empty placeholder. Copy the `prompt:`
   field out of the real agent spec you want to test (from your project's
   `.subagents/<agent-name>.yaml`) and paste it in here. We deliberately don't

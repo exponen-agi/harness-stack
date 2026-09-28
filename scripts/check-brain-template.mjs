@@ -37,9 +37,11 @@ async function exists(p) {
   }
 }
 
-/** Recursively list files under `root` limited to the TRACKED roots, as paths
- *  relative to `root`. */
-async function listTracked(root) {
+/** Recursively list files under `root` limited to `roots` (default: the
+ *  TRACKED top-level entries), as paths relative to `root`. Exported so the
+ *  walk itself is unit-testable against disposable temp directories, without
+ *  a live sibling checkout. */
+export async function listTracked(root, roots = TRACKED) {
   const out = [];
   async function walk(rel) {
     const abs = path.join(root, rel);
@@ -52,10 +54,33 @@ async function listTracked(root) {
       out.push(rel);
     }
   }
-  for (const top of TRACKED) {
+  for (const top of roots) {
     if (await exists(path.join(root, top))) await walk(top);
   }
   return out.sort();
+}
+
+/**
+ * Byte-for-byte compare each `common` path between two roots. Exported (same
+ * reason as `listTracked`) so the content-drift half of the check also runs
+ * against disposable temp directories instead of only ever being exercised
+ * via a live CI clone.
+ *
+ * @param {string} baseA
+ * @param {string} baseB
+ * @param {readonly string[]} commonPaths relative paths present under both
+ * @returns {Promise<string[]>} the subset of commonPaths whose content differs
+ */
+export async function computeContentDrift(baseA, baseB, commonPaths) {
+  const drifted = [];
+  for (const rel of commonPaths) {
+    const [a, b] = await Promise.all([
+      fs.readFile(path.join(baseA, rel), "utf8"),
+      fs.readFile(path.join(baseB, rel), "utf8"),
+    ]);
+    if (a !== b) drifted.push(rel);
+  }
+  return drifted;
 }
 
 async function main() {
@@ -83,14 +108,7 @@ async function main() {
   const extraInTemplate = tplFiles.filter((f) => !brainSet.has(f)); // bundled, not in brain
   const common = tplFiles.filter((f) => brainSet.has(f));
 
-  const contentDrift = [];
-  for (const rel of common) {
-    const [a, b] = await Promise.all([
-      fs.readFile(path.join(templateDir, rel), "utf8"),
-      fs.readFile(path.join(brainDir, rel), "utf8"),
-    ]);
-    if (a !== b) contentDrift.push(rel);
-  }
+  const contentDrift = await computeContentDrift(templateDir, brainDir, common);
 
   const problems =
     missingFromTemplate.length + extraInTemplate.length + contentDrift.length;
@@ -117,7 +135,11 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only run the CLI when this file is executed directly — not when
+// listTracked/computeContentDrift are imported for unit testing.
+if (path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1] ?? "")) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

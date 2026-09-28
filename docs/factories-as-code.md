@@ -282,7 +282,13 @@ industry is converging on independently, as of late 2025 / 2026:
   2026 it's read by most mainstream coding agents (Claude Code, Cursor,
   Codex, Copilot, Gemini CLI, Aider, Windsurf, Zed, and others), which is
   exactly the kind of N-tools-one-file problem `harness build-agents`
-  already solves for `.subagents/*.yaml`. And **Agent Skills** (the portable
+  already solves for `.subagents/*.yaml`. In December 2025 the format itself
+  was donated to the Linux Foundation's new **Agentic AI Foundation**
+  (co-founded by OpenAI, with Google/Cursor/Factory among the other
+  contributors) — by then over 60,000 open-source projects had already
+  adopted it. That's a useful data point if you're deciding whether to trust
+  a plain `AGENTS.md` file over a proprietary one: it's now vendor-neutral by
+  governance, not just by convention. And **Agent Skills** (the portable
   `SKILL.md` format this repo already emits for Cursor/Codex/Antigravity) has
   become a genuine cross-vendor standard rather than a single tool's
   extension point — further evidence that betting on plain, versioned files
