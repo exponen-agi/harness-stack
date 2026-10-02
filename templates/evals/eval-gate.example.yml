@@ -1,0 +1,72 @@
+# Eval gate: block a pull request if an agent change makes its output worse.
+#
+# COPY this file to .github/workflows/eval-gate.yml in YOUR project.
+# It runs the Promptfoo scenarios in templates/evals/ (see README.md there).
+#
+# Safe by design (read before editing):
+#   - Triggers only on pull requests that touch agent specs or eval files.
+#   - Skips (does not fail) when the API key secret is missing, so forks and
+#     first-time setups stay green instead of breaking.
+#   - Read-only permissions. The model API key is only given to ONE step.
+#   - NEVER switch the trigger to `pull_request_target`: it would hand your
+#     secret to code from a fork. Keep `pull_request`.
+name: Agent eval gate
+
+on:
+  pull_request:
+    paths:
+      - ".subagents/**"
+      - "templates/agents/**"
+      - "templates/evals/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # cost cap: a stuck eval cannot run forever
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Free check (no key needed) - agent spec hygiene
+        run: npx --yes tsx scripts/eval-agents.mjs --strict
+        continue-on-error: false
+
+      - name: Paid check - agent output quality (Promptfoo)
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # --no-cache: always judge fresh output.
+        # --max-concurrency 2: keeps token spend and rate limits predictable.
+        run: >
+          npx --yes promptfoo@latest eval
+          -c templates/evals/promptfooconfig.yaml
+          --no-cache --max-concurrency 2 -o results.json
+
+      - name: Quality gate - fail on any failed scenario
+        if: env.HAS_KEY == 'true'
+        run: |
+          FAILURES=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json','utf8')).results.stats.failures)")
+          echo "Failed scenarios: $FAILURES"
+          test "$FAILURES" -eq 0
+
+      - name: Note when the paid check was skipped
+        if: env.HAS_KEY != 'true'
+        run: echo "::notice::ANTHROPIC_API_KEY secret not set - skipped the paid output-quality check."
+
+      - name: Upload results
+        if: always() && env.HAS_KEY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: results.json

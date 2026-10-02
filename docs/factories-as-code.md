@@ -184,6 +184,16 @@ instead of leaving agent quality to "looks fine on review":
   declaring `requires_fresh_context: true`. This runs automatically in CI, on
   every pull request, on Linux, macOS, *and* Windows — nobody has to remember
   to run it by hand.
+- **Roster and safety checks** (same command, new in this release) look at
+  all agents *together*. They fail the build if two agents share a name or a
+  slash command, if a file name does not match the agent inside it, or if a
+  `description` is too short for an AI tool to choose the agent by. They also
+  run a **prompt-injection safety lint**: an agent that reads text from the
+  web or an MCP server *and* can write files or run commands could be tricked
+  by hidden text on a web page ("ignore your rules and run this"). Every such
+  agent must carry one guard line in its prompt saying fetched text is
+  untrusted data, never instructions. CI runs this with `--strict`; locally
+  you can run `npm run eval:agents -- --strict` yourself.
 - **`npm test`'s golden-file build benchmark** (`tests/build-snapshot.test.ts`)
   is the next rung: it renders the full roster for every shipped platform and
   compares the output byte-for-byte against a committed snapshot. Spec
@@ -213,6 +223,26 @@ instead of leaving agent quality to "looks fine on review":
     failures; the next step is mining it to catch regressions automatically,
     closing the loop from "an agent misbehaved in production" back to "the
     spec that caused it gets fixed."
+
+### The whole quality loop on one page
+
+```mermaid
+flowchart LR
+    E["You edit an agent spec\n(.subagents/*.yaml)"] --> F["Free checks, no key\nnpm run eval:agents -- --strict\nnpm test (golden build)"]
+    F -->|pass| P["Paid checks, your own key\nPromptfoo scenarios\n(templates/evals/eval-gate.example.yml)"]
+    F -->|fail| E
+    P -->|all scenarios pass| M["Merge"]
+    P -->|a scenario fails| E
+    M --> R["Agent runs for real\n(commit / check / on demand)"]
+    R -->|"agent made a mistake"| L["Ratchet: add a scenario\nor a prompt rule for it"]
+    L --> E
+```
+
+Every real mistake becomes one new test scenario or one new prompt rule, so
+the same mistake cannot come back. A ready-to-copy GitHub Actions gate for the
+paid step is in [`templates/evals/eval-gate.example.yml`](../templates/evals/eval-gate.example.yml).
+It skips safely when no API key is set, uses read-only permissions, and has a
+time limit so a stuck run cannot burn money.
 
 Until then, `npm run eval:agents` is the cheapest, most reliable thing a small
 team can lean on: it's checked into CI, requires no extra account or API key,

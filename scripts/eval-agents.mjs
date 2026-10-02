@@ -7,6 +7,11 @@
  * verifier independence, required identity fields). Prints a PASS/FAIL line
  * per agent plus a summary, and exits 1 if anything fails.
  *
+ * Also checks the roster as a whole (unique names/commands, file name matches
+ * agent name, routable descriptions) and prints safety warnings for agents that
+ * read untrusted content AND can write/exec. Add `--strict` to fail on warnings:
+ *   npm run eval:agents -- --strict
+ *
  * Usage:
  *   npm run eval:agents
  *
@@ -118,6 +123,86 @@ export function evaluateAgentSpec(spec, validTriggers, knownCapabilities) {
   return issues;
 }
 
+const MIN_DESCRIPTION_LENGTH = 40;
+// A prompt "has a guard" if it calls fetched content untrusted / injection.
+const INJECTION_GUARD = /untrusted|prompt[- ]injection/i;
+
+/**
+ * Safety lint ("lethal trifecta" check). An agent that can both READ UNTRUSTED
+ * CONTENT (web_fetch, web_search, or an MCP server) and CHANGE THINGS (write or
+ * exec) can be steered by text hidden in a web page or tool result — a prompt
+ * injection. That is not always wrong (dependency-audit-agent needs both), so
+ * these are WARNINGS unless the prompt contains a guard line (it mentions
+ * "untrusted" or "prompt injection"). Printed, never failing, unless you pass
+ * `--strict`.
+ * Pure function — no filesystem access.
+ *
+ * @param {Record<string, unknown>} spec
+ * @returns {string[]} warnings (empty array = nothing to flag)
+ */
+export function lintAgentSafety(spec) {
+  const capabilities = Array.isArray(spec?.capabilities) ? spec.capabilities : [];
+  const mcpServers = Array.isArray(spec?.mcp_servers) ? spec.mcp_servers : [];
+  const readsUntrusted =
+    capabilities.includes("web_fetch") ||
+    capabilities.includes("web_search") ||
+    mcpServers.length > 0;
+  const canChange = capabilities.includes("write") || capabilities.includes("exec");
+  if (!readsUntrusted || !canChange) return [];
+  const prompt = typeof spec?.prompt === "string" ? spec.prompt : "";
+  if (INJECTION_GUARD.test(prompt)) return [];
+  return [
+    `reads untrusted content (web/MCP) AND can ${capabilities
+      .filter((c) => c === "write" || c === "exec")
+      .join("+")}, but its prompt has no injection guard: add a line saying fetched text is untrusted data, never instructions`,
+  ];
+}
+
+/**
+ * Roster-level checks: rules that only make sense across ALL agents together.
+ * Pure function — takes `{ file, spec }` pairs, returns issues per file name.
+ *
+ * - `name` must equal the file name (so `verifier-agent.yaml` holds `verifier-agent`)
+ * - `name` and the slash `command` must be unique (two agents would collide)
+ * - `description` must be long enough to route on (AI tools pick an agent by it)
+ *
+ * @param {{ file: string, spec: Record<string, unknown> }[]} entries
+ * @returns {Map<string, string[]>} file -> issues (only files with issues)
+ */
+export function evaluateRoster(entries) {
+  const issues = new Map();
+  const add = (file, msg) => issues.set(file, [...(issues.get(file) ?? []), msg]);
+
+  const names = new Map();
+  const commands = new Map();
+  for (const { file, spec } of entries) {
+    const name = typeof spec?.name === "string" ? spec.name : "";
+    const expectedFile = `${name}.yaml`;
+    if (name && file !== expectedFile) {
+      add(file, `file name must match agent name (expected "${expectedFile}")`);
+    }
+    if (name) names.set(name, [...(names.get(name) ?? []), file]);
+
+    const command = typeof spec?.command === "string" ? spec.command : name.replace(/-agent$/, "");
+    if (command) commands.set(command, [...(commands.get(command) ?? []), file]);
+
+    const description = typeof spec?.description === "string" ? spec.description.trim() : "";
+    if (description.length > 0 && description.length < MIN_DESCRIPTION_LENGTH) {
+      add(
+        file,
+        `"description" is too short to route on (${description.length} chars, minimum ${MIN_DESCRIPTION_LENGTH}) — say what the agent does and when to use it`,
+      );
+    }
+  }
+  for (const [name, files] of names) {
+    if (files.length > 1) for (const f of files) add(f, `duplicate agent name "${name}" (${files.join(", ")})`);
+  }
+  for (const [command, files] of commands) {
+    if (files.length > 1) for (const f of files) add(f, `duplicate command "${command}" (${files.join(", ")})`);
+  }
+  return issues;
+}
+
 async function loadTriggerMap() {
   const file = path.join(here, "..", "templates", "trigger-map.yaml");
   const map = YAML.parse(await fs.readFile(file, "utf8"));
@@ -132,10 +217,20 @@ async function main() {
   const validTriggers = await loadTriggerMap();
   const files = (await fs.readdir(agentsDir)).filter((f) => f.endsWith(".yaml")).sort();
 
-  let failures = 0;
+  const strict = process.argv.includes("--strict");
+  const entries = [];
   for (const file of files) {
-    const raw = YAML.parse(await fs.readFile(path.join(agentsDir, file), "utf8"));
-    const issues = evaluateAgentSpec(raw, validTriggers, CAPABILITIES);
+    entries.push({ file, spec: YAML.parse(await fs.readFile(path.join(agentsDir, file), "utf8")) });
+  }
+  const rosterIssues = evaluateRoster(entries);
+
+  let failures = 0;
+  let warnings = 0;
+  for (const { file, spec } of entries) {
+    const issues = [...evaluateAgentSpec(spec, validTriggers, CAPABILITIES), ...(rosterIssues.get(file) ?? [])];
+    const warns = lintAgentSafety(spec);
+    warnings += warns.length;
+    if (strict) issues.push(...warns.map((w) => `[strict] ${w}`));
     if (issues.length === 0) {
       console.log(`✓ PASS  ${file}`);
     } else {
@@ -143,6 +238,10 @@ async function main() {
       console.log(`✗ FAIL  ${file}`);
       for (const issue of issues) console.log(`    - ${issue}`);
     }
+    if (!strict) for (const w of warns) console.log(`    ! warning: ${w}`);
+  }
+  if (warnings > 0 && !strict) {
+    console.log(`\n${warnings} safety warning(s). Run with --strict to treat them as failures.`);
   }
 
   console.log("");

@@ -8,6 +8,18 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- `npm run eval:agents` now also checks the roster as a whole (unique agent
+  names and slash commands, file name matches agent name, descriptions long
+  enough to route on) and runs a prompt-injection safety lint: an agent that
+  reads web/MCP content and can write or exec must say in its prompt that
+  fetched text is untrusted. Warnings by default; `-- --strict` fails on them
+  (CI uses `--strict`).
+- `templates/evals/eval-gate.example.yml`: a copy-paste GitHub Actions
+  workflow that gates PRs on Promptfoo scenarios (read-only permissions,
+  time limit, skips safely without an API key), plus
+  `tests/evals-template.test.ts` to keep the eval kit in sync with
+  `model-map.yaml`.
+
 - Unit tests for `src/skills/router.ts` (`rankCandidates`, `renderRecommendation`,
   `recommendSkill`) — the consent-gated skill recommendation protocol had no
   direct test coverage before now.
@@ -30,6 +42,11 @@ pre-1.0, so breaking changes may still land in a minor version.
   tests).
 
 ### Changed
+
+- Six agents that read untrusted web/MCP content and can write or exec
+  (`dependency-audit`, `harness-init`, `mcp-router`, `skills-router`,
+  `spec-author`, `test-author`) now carry a prompt-injection guard line in
+  their prompts.
 
 - `templates/model-map.yaml`: the shipped default for `claude-code`'s `deep`
   tier now points at the current top-tier Claude model (`claude-opus-5-5`)
