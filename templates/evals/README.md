@@ -85,6 +85,23 @@ resolved for that agent's `model_tier` in `templates/model-map.yaml` — the
 eval is only meaningful if it tests the same model the agent actually runs
 on.
 
+## Run it automatically on every pull request
+
+Copy [`eval-gate.example.yml`](./eval-gate.example.yml) to
+`.github/workflows/eval-gate.yml` in your project, then add a repository
+secret named `ANTHROPIC_API_KEY` (GitHub: *Settings → Secrets and variables →
+Actions*). What it does:
+
+1. Runs only when a PR changes agent specs or eval files.
+2. Always runs the free spec checks. If the secret is missing, it skips the
+   paid step with a notice instead of failing.
+3. Fails the PR if any Promptfoo scenario fails.
+
+It uses read-only permissions and a 15-minute time limit. Keep the trigger as
+`pull_request` — never `pull_request_target`, which would expose your secret
+to code from forks. A test in this repo (`tests/evals-template.test.ts`) keeps
+the template's default model in sync with `templates/model-map.yaml`.
+
 ## Growing this into a self-improvement loop
 
 Once you have a handful of scenarios like this passing reliably, the natural

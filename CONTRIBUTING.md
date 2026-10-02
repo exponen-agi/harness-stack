@@ -97,7 +97,7 @@ past. Cite what you found in the PR description.
 ## Before you open a pull request
 
 ```bash
-npm run lint && npm run typecheck && npm test && npm run build && npm run eval:agents
+npm run lint && npm run typecheck && npm test && npm run build && npm run eval:agents -- --strict
 ```
 
 All five must pass. If you edited `src/` and committed the resulting `dist/`
