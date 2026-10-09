@@ -8,6 +8,13 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- `tests/docs-roster-sync.test.ts`: CI now fails if the agent tables in
+  `README.md` and `docs/factories-as-code.md` drift from
+  `templates/agents/*.yaml` (names, tier, triggers, write access).
+- `tests/workflow-hygiene.test.ts`: every workflow, and the shipped
+  eval-gate template, must declare read-only top-level `permissions:`.
+- `ci.yml` now sets `permissions: contents: read` and cancels superseded runs
+  (`concurrency`).
 - `npm run eval:agents` now also checks the roster as a whole (unique agent
   names and slash commands, file name matches agent name, descriptions long
   enough to route on) and runs a prompt-injection safety lint: an agent that
