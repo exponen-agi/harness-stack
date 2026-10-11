@@ -78,15 +78,18 @@ tests/                   ← vitest; one file roughly per src/ module
 bundler, no dependencies) served by GitHub Pages. Its `AGENTS`, `PLATFORM_ROWS`,
 `COMMANDS`, `NODE_DETAILS`, and `ECO_DETAILS` constants near the bottom of the
 file mirror the README's agent catalog, platform table, and quickstart steps
-— there's no automated check, so if you change the agent roster or platform
-surfaces in the README, please
-update this file's constants to match.
+— `tests/landing-page-sync.test.ts` checks the agent list and install command,
+so if you change the agent roster or platform surfaces in the README, update
+this file's constants to match.
 
 If you're adding a **new sub-agent**, start in `templates/agents/*.yaml` —
 copy an existing one close to what you need and adjust `capabilities`,
 `triggers`, `expose_as`, and the `prompt`. Then add it to the count/list
 assertions in `tests/roster.test.ts` and to the tables in `README.md` and
 `docs/spec-subagents.md` (keeping docs and code in sync is part of the review).
+`tests/docs-roster-sync.test.ts` fails if the README catalog or the
+`docs/factories-as-code.md` roster disagrees with `templates/agents/*.yaml`
+(agent names, tier, triggers, and whether the agent can write files).
 
 If you're adding a **new platform adapter**, implement the `PlatformAdapter`
 interface in `src/adapters/types.ts`, and **verify every claim against that

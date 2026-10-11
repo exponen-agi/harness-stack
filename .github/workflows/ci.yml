@@ -5,6 +5,16 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: CI only reads the repo. If a job ever needs more, grant it on
+# that one job, not here.
+permissions:
+  contents: read
+
+# A newer push to the same branch/PR makes the older run pointless — cancel it.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     name: lint · typecheck · test · build
