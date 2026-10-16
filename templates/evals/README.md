@@ -74,10 +74,10 @@ export ANTHROPIC_API_KEY=sk-...          # macOS / Linux
 # $env:ANTHROPIC_API_KEY = "sk-..."      # Windows PowerShell
 
 # 3. Run the eval:
-npx promptfoo@latest eval -c templates/evals/promptfooconfig.yaml
+npx promptfoo@0.124.1 eval -c templates/evals/promptfooconfig.yaml
 
 # 4. Look at the results in your terminal, or open the local results viewer:
-npx promptfoo@latest view
+npx promptfoo@0.124.1 view
 ```
 
 Edit `providers` in `promptfooconfig.yaml` to point at whatever model you
