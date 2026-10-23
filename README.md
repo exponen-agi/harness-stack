@@ -1,108 +1,121 @@
+<div align="center">
+
 # Harness Stack
 
-**Harness Stack keeps your AI coding tool honest.** It automatically checks
-that your tests actually cover what you just changed, flags docs that fell out
-of sync with the code, and remembers *why* past changes were made — so you
-(and your team) stop re-explaining the codebase to your AI tool every single
-session.
+**An AI-native, platform-agnostic engineering harness: spec-driven sub-agents you can drop into any project, on any agentic coding platform.**
 
-You run one command (`harness init`) inside your own repo. It works with
-whatever AI coding tool you already use — Claude Code, Cursor, Codex,
-Antigravity, or GitHub Copilot. **No AI/ML background required.**
+[![CI](https://github.com/exponen-agi/harness-stack/actions/workflows/ci.yml/badge.svg)](https://github.com/exponen-agi/harness-stack/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-informational)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+
+[Quick start](#quick-start) ·
+[How it works](#how-it-works) ·
+[Agent catalog](#the-v1-agent-catalog) ·
+[Docs](#documentation) ·
+[Contributing](#contributing)
+
+</div>
 
 ---
 
-## 🧩 What you actually get
+## Contents
+
+- [What and why](#what-and-why)
+- [Key features](#key-features)
+- [Quick start](#quick-start)
+- [Command reference](#command-reference)
+- [Configuration](#configuration)
+- [Optional: commit memory (harness-brain)](#optional-commit-memory-harness-brain)
+- [Troubleshooting](#troubleshooting)
+- [How it works](#how-it-works)
+- [The v1 agent catalog](#the-v1-agent-catalog)
+- [Project structure](#project-structure)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+
+## What and why
+
+Harness Stack keeps your AI coding tool honest. It checks that your tests
+actually cover what you just changed, flags docs that fell out of sync with the
+code, and remembers *why* past changes were made, so you and your team stop
+re-explaining the codebase to your AI tool every session.
+
+You run one command (`harness init`) inside your own repo. It works with
+whatever AI coding tool you already use: Claude Code, Cursor, Codex,
+Antigravity, or GitHub Copilot. No AI/ML background required.
+
+Nothing here trains a model or calls a hosted service on your behalf. Harness
+generates plain text files (YAML, Markdown, TOML) that your existing tool reads.
+Open any generated file, read it in five minutes, delete it if you do not like it.
+
+**Doesn't my AI coding tool already do this?** Not really. General-purpose
+assistants help when you ask, and forget everything when the session ends.
+Harness adds what a plain assistant does not do on its own:
+
+- **It runs automatically**, wired into events you already trigger (`git commit`, project init), not only when you remember to ask.
+- **It is made of small, single-job agents** (write missing tests, spot doc drift, log the "why") instead of one assistant doing everything from a blank slate.
+- **It has memory across sessions and repos** via the optional [harness-brain](https://github.com/exponen-agi/harness-brain).
+- **It behaves the same on every platform.** Switch from Claude Code to Cursor and the same checks still run.
+
+If that is not a gap you feel today, you may not need this yet.
+
+## Key features
 
 | When you... | Harness... |
 | --- | --- |
-| Write new code and try to commit | 🧪 Checks the change is covered by tests — writes them for you if you say yes |
-| Change code but forget the docs | 📝 Catches doc/README/comment drift against the diff, before it ships |
-| Come back to the repo tomorrow (or a teammate does) | 🧠 Has already logged *what changed and why*, so no one re-explains context to the AI from scratch |
-| Ask your AI tool for help | 🔀 Routes the request to a small, focused specialist agent instead of one general-purpose assistant guessing |
-| Open a generated file | 📂 It's plain YAML/Markdown — readable in five minutes, editable, deletable. Nothing hidden, nothing trained |
+| Write new code and try to commit | Checks the change is covered by tests, and writes missing ones if you say yes |
+| Change code but forget the docs | Catches doc, README and comment drift against the diff before it ships |
+| Come back tomorrow (or a teammate does) | Has already logged *what changed and why*, so nobody re-explains context |
+| Ask your AI tool for help | Routes the request to a small, focused specialist agent |
+| Open a generated file | It is plain YAML/Markdown: readable, editable, deletable. Nothing hidden |
 
-## 🤔 "Doesn't my AI coding tool already do this?"
+Under the hood:
 
-Not really. Claude Code, Cursor, and friends are general-purpose assistants —
-they help when you ask, and they forget everything the moment the session
-ends. Harness Stack adds the parts a plain assistant doesn't do on its own:
+- **Platform-agnostic by construction.** Agent specs name an abstract model tier and abstract capabilities; the active platform adapter resolves them.
+- **Fresh-context by mandate.** Agents that reason about libraries, APIs, versions, or CVEs run with web search and Context7 wired, never stale training data.
+- **Spec-driven by default.** Installs vetted foundations (Spec Kit and Superpowers) and surfaces their skills through a consent-gated recommendation protocol.
+- **Auditable.** Every sub-agent is a diffable `.yaml` file in `.subagents/`.
 
-- **It runs automatically**, wired into events you already trigger (`git
-  commit`, project init) — not just when you remember to ask.
-- **It's made of small, single-job agents** (write missing tests, spot doc
-  drift, log the "why") instead of one assistant trying to do everything from
-  a blank slate.
-- **It has memory across sessions and repos** (via the optional
-  [harness-brain](https://github.com/exponen-agi/harness-brain)), so context
-  survives past today's chat window.
-- **It's the same behavior regardless of which AI tool you pick** — switch
-  from Claude Code to Cursor and the same checks still run.
+## Quick start
 
-If that's not a gap you feel today, you may not need this yet — and that's a
-fine answer too.
+Follow this top to bottom in **your own** project (full-stack app, backend, mobile app, library, anything).
 
-```mermaid
-flowchart LR
-    A["Your repo<br/>src/, tests/, README.md ..."] -->|"harness init<br/>+ harness build-agents"| B[".subagents/*.yaml<br/>(plain-English agent specs)"]
-    B --> C[".claude/ or .cursor/ or ...<br/>(auto-generated for YOUR tool)"]
-    style B fill:#1f6feb22,stroke:#1f6feb
-    style C fill:#2ea04322,stroke:#2ea043
-```
+### 1. Prerequisites
 
-Nothing here trains a model or calls a hosted service on your behalf — it
-generates plain text files (YAML/Markdown/TOML) that your existing AI coding
-tool reads. Open any generated file, read it in five minutes, delete it if you
-don't like it.
-
-**Jump to:** [Use Harness in another repo](#use-harness-in-another-repo) ·
-[Deep dive (design principles + architecture)](#deep-dive-how-it-works) ·
-[Contributing](#contributing)
-
-<a id="use-harness-in-another-repo"></a>
-
-## 🚀 Use Harness in another repo
-
-This is the main walkthrough — follow it top to bottom in **your own**
-project (a full-stack app, a backend service, a mobile app, a library,
-anything). It assumes no prior experience with Harness or with AI agents.
-
-### Step 0 — Check prerequisites
-
-You need **Node.js 22 or newer** and **git**. Check what you have:
+**Node.js 22 or newer** and **git**.
 
 ```bash
 node -v     # must print v22.x.x or higher
 git --version
 ```
 
-Don't have Node 22+? Install it from [nodejs.org](https://nodejs.org) or with
-a version manager like [nvm](https://github.com/nvm-sh/nvm)
-(`nvm install 22 && nvm use 22`). *(Node 20 reached end-of-life in April 2026
-— it no longer receives security fixes, so Harness no longer supports it.)*
+Install Node from [nodejs.org](https://nodejs.org) or with [nvm](https://github.com/nvm-sh/nvm)
+(`nvm install 22 && nvm use 22`). Node 20 reached end-of-life in April 2026, so Harness no longer supports it.
 
-### Step 1 — Install the `harness` CLI
+### 2. Install the CLI
 
-Harness Stack isn't on the npm registry yet (see
-[Contributing](#contributing) if you'd like to help change that), but one
-command installs it straight from GitHub — no clone, no build tools (the
-compiled output ships in the repo):
+Harness Stack is not on the npm registry yet. One command installs it straight
+from GitHub, with no clone and no build tools (the compiled output ships in the repo):
 
 ```bash
 npm install -g https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz
 ```
 
-> **On npm 12 or newer** (ships with recent Node on Windows), npm blocks
-> URL installs and install scripts by default, so use:
+> **On npm 12 or newer** (ships with recent Node on Windows), npm blocks URL
+> installs and install scripts by default, so use:
 >
 > ```powershell
 > npm install -g --allow-remote=all https://github.com/exponen-agi/harness-stack/archive/refs/heads/main.tar.gz
 > ```
 >
-> You'll see a warning that harness-stack's `prepare` script was blocked —
-> **that's safe to ignore.** The script only rebuilds from source when dev
-> tooling is present; the compiled output already ships in the repo, so the
-> blocked script changes nothing.
+> You will see a warning that harness-stack's `prepare` script was blocked.
+> That is safe to ignore: the script only rebuilds from source when dev tooling
+> is present, and the compiled output already ships in the repo.
 
 Confirm it worked:
 
@@ -111,38 +124,26 @@ harness --version
 # 0.1.0
 ```
 
-If the install succeeded but `harness` isn't recognized, it's almost
-always a `PATH` issue — see [Troubleshooting](#troubleshooting) below,
-which walks through it (Windows included).
+If `harness` is not recognized, it is almost always a `PATH` issue; see [Troubleshooting](#troubleshooting).
 
-> **Why the `/archive/...tar.gz` URL instead of `npm install -g
-> git+https://...`?** You'll find the `git+https` one-liner in older
-> versions of this README, and it *appears* to work — npm exits without
-> errors — but current npm (v10/v11) has a bug installing git URLs
-> globally: it links the package into npm's temporary cache directory
-> (which is then cleaned) instead of copying it, so the `harness` command
-> is never actually created. The tarball URL above goes through npm's
-> normal package-download path — the same one registry installs use — and
-> produces a real, working install.
+> **Why the `/archive/...tar.gz` URL instead of `npm install -g git+https://...`?**
+> Current npm (v10/v11) has a bug installing git URLs globally: it links the
+> package into npm's temporary cache directory (which is then cleaned) instead
+> of copying it, so the `harness` command is never created. The tarball URL goes
+> through npm's normal package-download path and produces a real install.
 
 <details>
-<summary><strong>Global install failed, or you'd rather not install globally?</strong></summary>
+<summary><strong>Global install failed, or you would rather not install globally?</strong></summary>
 
-- **Permission error (EACCES)** — your npm is set up to need `sudo` for
-  global installs. Either re-run with `sudo npm install -g ...`, or (recommended)
-  fix npm's global prefix once by following the
-  [official npm guide](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally).
-- **`nvm`-managed Node** — this is usually the smoothest path; nvm's global
-  installs don't need `sudo`.
-- **Prefer installing from a local checkout** — clone, pack, and install
-  the tarball (this also avoids the git-URL bug above):
+- **Permission error (EACCES)**: re-run with `sudo`, or (recommended) fix npm's global prefix once by following the [official npm guide](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally). An `nvm`-managed Node usually avoids this entirely.
+- **Install from a local checkout** (also avoids the git-URL bug):
   ```bash
   git clone https://github.com/exponen-agi/harness-stack.git
   cd harness-stack
   npm pack
   npm install -g ./harness-stack-0.1.0.tgz   # PowerShell: .\harness-stack-0.1.0.tgz
   ```
-- **Don't want a global install** — run it straight from a clone instead:
+- **No global install**: run from a clone instead:
   ```bash
   cd harness-stack && npm install
   npm link                 # makes `harness` available globally from this checkout
@@ -152,22 +153,14 @@ which walks through it (Windows included).
 
 </details>
 
-### Step 2 — Go to *your* project
+### 3. Run `harness init` in your project
 
 ```bash
-cd ~/code/my-backend-service      # or your full-stack app, mobile repo, etc.
-```
-
-Harness always works on **the directory you run it from** — there's nothing
-to point at your project's name or type; it figures that out.
-
-### Step 3 — Run `harness init`
-
-```bash
+cd ~/code/my-backend-service
 harness init
 ```
 
-This asks you a few questions, interactively:
+Harness always works on the directory you run it from. It asks a few questions:
 
 ```
 ? Which agentic platform(s) do you use? (space to select, enter to confirm)
@@ -181,129 +174,129 @@ This asks you a few questions, interactively:
 ? Path for harness-brain [../harness-brain]:
 ```
 
-- **Platform(s):** pick whichever AI coding tool(s) you actually use — you can
-  pick more than one, and Harness will generate files for all of them.
-- **harness-brain:** optional (see [below](#optional-commit-memory-harness-brain));
-  safe to say **no** for your first run, you can add it later.
-
-When it finishes, your repo has two new, plain-text folders:
+Pick whichever tool(s) you use (you can pick several). harness-brain is
+optional; say **no** on your first run and add it later. Afterwards your repo gains:
 
 ```
 your-project/
-├── .subagents/              ← the sub-agents, as readable YAML — edit these
+├── .subagents/              ← the sub-agents, as readable YAML (edit these)
 │   ├── harness-init-agent.yaml
 │   ├── test-author-agent.yaml
 │   └── ...
-├── .harness/                ← Harness's own config (model map, trigger map, ...)
+├── .harness/                ← Harness config (model map, trigger map, ...)
 │   └── config.yaml
 ├── AGENTS.md                ← operating rules appended for your main AI agent
 └── (everything else you already had, untouched)
 ```
 
-Nothing here is a black box — every file is Markdown, YAML, or JSON. Open
-`.subagents/test-author-agent.yaml` right now and read it; it's a plain-English
-job description.
-
-### Step 4 — Generate the files your AI tool actually reads
+### 4. Generate the files your AI tool reads
 
 ```bash
 harness build-agents
 ```
 
-This reads every file in `.subagents/` and writes the **native** files your
-chosen platform(s) expect. For Claude Code, for example:
+This reads every file in `.subagents/` and writes the native files each chosen
+platform expects. For Claude Code:
 
 ```
 your-project/
-├── .claude/
-│   ├── agents/                  ← one file per sub-agent
-│   │   ├── test-author-agent.md
-│   │   └── ...
-│   ├── skills/                  ← decision-routable skills (auto-picked by the AI)
-│   └── commands/                ← manual slash commands, e.g. /verify
+└── .claude/
+    ├── agents/      ← one file per sub-agent
+    ├── skills/      ← decision-routable skills (auto-picked by the AI)
+    └── commands/    ← manual slash commands, e.g. /verify
 ```
 
-If you picked Cursor, Codex, Antigravity, or Copilot instead (or as well),
-you'll see `.cursor/`, `.codex/`, `.agents/`, or `.github/agents/` — see
-[the architecture diagram](#deep-dive-how-it-works) for the full map.
+Other platforms produce `.cursor/`, `.codex/`, `.agents/`, or `.github/agents/`
+(see [How it works](#how-it-works)). **Re-run `harness build-agents` after editing
+any `.subagents/*.yaml`**: generated files are overwritten, so never hand-edit them.
 
-**Re-run `harness build-agents` any time you edit a `.subagents/*.yaml` file** —
-generated files are always overwritten, so never hand-edit them.
+### 5. Try it
 
-### Step 5 — Try it
-
-Open your AI coding tool inside this repo as normal, and either:
-
-- **Ask it something naturally** — e.g. "review my recent changes for missing
-  tests." A well-picked sub-agent (`test-author-agent`) can be routed to
-  automatically if it was exposed as a skill.
-- **Or invoke a command directly** — run `harness skills` to see the exact
-  slash command for each agent (e.g. `/verify`, `/review-drift`), then type it
-  in your AI tool's chat.
+Open your AI coding tool in the repo and either ask naturally ("review my recent
+changes for missing tests"), or invoke a command directly. Use `harness skills`
+to see the exact slash command for each agent (e.g. `/verify`, `/review-drift`).
 
 ```bash
-harness skills      # shows: agent -> which files it produced -> how to invoke it
-harness agent list  # browse every registered sub-agent and what it does
-harness hooks       # see which native event (or git hook) triggers each agent
+harness skills      # agent -> files produced -> how to invoke it
+harness agent list  # browse every registered sub-agent
+harness hooks       # which native event (or git hook) triggers each agent
 harness check --all # preview the pre-commit orchestration plan
 ```
 
-### Step 6 — Commit the generated files
+### 6. Commit the generated files
 
-`.subagents/`, `.harness/`, `AGENTS.md`, and the platform folders
-(`.claude/`, `.cursor/`, etc.) are meant to be **committed to git** — that's
-the whole point of "auditable": every teammate (and every PR reviewer) can see
-exactly what each agent is allowed to do, as a diffable text file.
+`.subagents/`, `.harness/`, `AGENTS.md`, and the platform folders are meant to be
+committed: every teammate and PR reviewer can see exactly what each agent may do,
+as a diffable text file.
 
 ```bash
-git add .subagents .harness AGENTS.md .claude   # (or whichever platform folder you generated)
+git add .subagents .harness AGENTS.md .claude   # or whichever platform folder you generated
 git commit -m "Add Harness sub-agents"
 ```
 
-### Optional: commit-memory (`harness-brain`)
+## Command reference
 
-Harness can also keep a running, human-readable log of *what changed and why*
-across your commits, written by `commit-brain-agent` into a companion
-repository: [harness-brain](https://github.com/exponen-agi/harness-brain).
-It's entirely opt-in.
+| Command | Purpose |
+| --- | --- |
+| `harness init` | Scaffold `.subagents/`, `.harness/` config and the foundation. Flags: `-p, --platform <platforms>` (comma-separated: `claude-code`, `cursor`, `codex`, `antigravity`, `copilot`; or set `HARNESS_PLATFORM`), `-y, --yes`, `--skip-foundation`, `--dry-run-foundation`, `--brain <path>`, `--brain-source <clone\|scaffold>`, `--brain-repo <url>`, `--skip-brain` |
+| `harness build-agents` | Generate platform-native agent files from `.subagents/*.yaml`. Flag: `-p, --platform <platform>` (default: all configured) |
+| `harness agent list` | Print (and refresh) the `.subagents/README.md` index |
+| `harness agent create <task...>` | Discover-or-create an agent for a task (consent-gated). Flags: `-g, --goal <goal>`, `-y, --yes` |
+| `harness check` | Compute the resource-aware orchestration plan. Flag: `--all` includes all `on_check` and `on_demand` reviewers |
+| `harness hooks` | Show how agent triggers resolve to native event hooks. Flag: `-p, --platform` |
+| `harness skills` | Show how agents are exposed as skills and slash commands. Flag: `-p, --platform` |
+| `harness seed` | Print the iteration seed (north-star plus brain state) for loop and context reset. Flag: `--repo <name>` |
+
+## Configuration
+
+| File / variable | What it controls |
+| --- | --- |
+| `.subagents/*.yaml` | The canonical agent specs: name, model tier, capabilities, triggers, `expose_as`, prompt |
+| `.harness/config.yaml` | Enabled platforms and the `brain:` setting |
+| `.harness/model-map.yaml` | Maps abstract tiers (`fast` / `reasoning` / `deep` / `inherit`) to concrete models per platform. Model names live only here |
+| `.harness/trigger-map.yaml` | Maps abstract triggers to each platform's native hooks (or a Harness fallback) |
+| `HARNESS_PLATFORM` | Platform(s) to use when `--platform` is omitted at `init` |
+| `HARNESS_BRAIN_PATH` | Location of your harness-brain checkout |
+
+## Optional: commit memory (harness-brain)
+
+Harness can keep a running, human-readable log of *what changed and why* across
+your commits, written by `commit-brain-agent` into a companion repository,
+[harness-brain](https://github.com/exponen-agi/harness-brain). It is entirely opt-in.
 
 ```bash
 harness init --brain ../harness-brain                     # clone the shared example repo
-harness init --brain ./memory --brain-source scaffold     # or: local skeleton, no network needed
-harness init --skip-brain                                 # or: skip it (default if you say "no" at the prompt)
+harness init --brain ./memory --brain-source scaffold     # local skeleton, no network needed
+harness init --skip-brain                                 # skip it (default if you say "no")
 ```
 
-- **clone** pulls the [harness-brain](https://github.com/exponen-agi/harness-brain)
-  repo, complete with worked examples you can look at and adapt.
-- **scaffold** creates the same folder structure locally, offline, with no
-  network call.
+- **clone** pulls the harness-brain repo, complete with worked examples.
+- **scaffold** creates the same folder structure locally and offline.
 
-Either way, the choice is saved under `brain:` in `.harness/config.yaml`, and
-you point the agents at it with:
+The choice is saved under `brain:` in `.harness/config.yaml`. Point the agents at it with:
 
 ```bash
 export HARNESS_BRAIN_PATH=/path/to/harness-brain
 ```
 
-Full explanation, examples, and how to add your own project to it: see the
-[harness-brain README](https://github.com/exponen-agi/harness-brain#readme).
+See the [harness-brain README](https://github.com/exponen-agi/harness-brain#readme) for details.
 
-### Troubleshooting
+## Troubleshooting
 
 | Problem | Fix |
 | --- | --- |
-| Installed with `npm install -g git+https://...` — install reported success but `harness` is "not recognized" / "command not found" | This is the npm git-URL global-install bug described in Step 1: npm links the package into its temporary cache (later cleaned) instead of copying it, and never creates the `harness` launcher. Run `npm uninstall -g harness-stack` to clear the broken install, then use Step 1's `/archive/...tar.gz` one-liner. |
-| Installed with the Step 1 one-liner, but `harness` is "not recognized" / "command not found" | npm's global bin folder isn't on your `PATH`. On Windows, follow the [walkthrough below](#windows-path). On macOS/Linux: `npm config get prefix`, then add `<that path>/bin` to your shell's `PATH`. |
+| Installed with `npm install -g git+https://...` — install reported success but `harness` is "not recognized" / "command not found" | This is the npm git-URL global-install bug described in Quick start step 2: npm links the package into its temporary cache (later cleaned) instead of copying it, and never creates the `harness` launcher. Run `npm uninstall -g harness-stack` to clear the broken install, then use Quick start step 2's `/archive/...tar.gz` one-liner. |
+| Installed with the Quick start step 2 one-liner, but `harness` is "not recognized" / "command not found" | npm's global bin folder isn't on your `PATH`. On Windows, follow the [walkthrough below](#windows-path). On macOS/Linux: `npm config get prefix`, then add `<that path>/bin` to your shell's `PATH`. |
 | `Could not determine Node.js install directory` (Windows) | Your npm launcher can't find its own Node install — classic symptom of a self-updated npm under `%APPDATA%\npm` clashing with the npm bundled with Node. See the [fix below](#windows-npm-broken). |
-| `npm warn install-scripts ... prepare: node scripts/prepare.mjs ... blocked` (npm 12+) | Harmless — see the note in Step 1. The blocked script only rebuilds from source when dev tooling is present; the shipped compiled output is used either way. Add `--allow-scripts=harness-stack` if you want the warning gone. |
-| Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo, so *global* installs never build. Re-install per Step 1. (A normal `git clone` + `npm install` for development still builds, which is intended — it just needs the devDependencies that a clone installs anyway.) |
+| `npm warn install-scripts ... prepare: node scripts/prepare.mjs ... blocked` (npm 12+) | Harmless — see the note in Quick start step 2. The blocked script only rebuilds from source when dev tooling is present; the shipped compiled output is used either way. Add `--allow-scripts=harness-stack` if you want the warning gone. |
+| Older install attempts failed building (`'tsc' is not recognized`, or `Cannot find module '...\node_modules\typescript\bin\tsc'`) | Earlier versions built from source at install time, and npm's git-dependency prepare step doesn't install the devDependencies that build needs. Fixed on `main`: the compiled `dist/` now ships in the repo, so *global* installs never build. Re-install per Quick start step 2. (A normal `git clone` + `npm install` for development still builds, which is intended — it just needs the devDependencies that a clone installs anyway.) |
 | `harness build-agents` fails with a fresh-context error | An agent needs a web-search tool + Context7 and your platform doesn't expose one yet. Re-run `harness init` and make sure you picked the right platform(s). |
 | Nothing happens when I ask my AI tool to use a sub-agent | Run `harness skills` — if the agent is command-only (not a "skill"), you need to invoke its slash command directly. |
-| I want to update to the latest Harness version | Re-run Step 1's one-liner — the `/archive/refs/heads/main.tar.gz` URL always serves the current `main`. If npm seems to have served you a stale cached copy, run `npm cache clean --force` first and re-install. |
+| I want to update to the latest Harness version | Re-run Quick start step 2's one-liner — the `/archive/refs/heads/main.tar.gz` URL always serves the current `main`. If npm seems to have served you a stale cached copy, run `npm cache clean --force` first and re-install. |
 
 <a id="windows-path"></a>
 
-#### Windows: install succeeded but `harness` is "not recognized"
+### Windows: install succeeded but `harness` is "not recognized"
 
 npm puts global launchers in its *prefix* folder on Windows (usually
 `C:\Users\<you>\AppData\Roaming\npm`), and that folder must be on your
@@ -345,7 +338,7 @@ Test-Path "$env:APPDATA\npm\harness.cmd"  # does the launcher exist?
 
 <a id="windows-npm-broken"></a>
 
-#### Windows: `Could not determine Node.js install directory`
+### Windows: `Could not determine Node.js install directory`
 
 This means the `npm` command itself is broken — it fails before even
 reading what you asked it to install. The usual cause is a self-updated
@@ -361,140 +354,81 @@ Remove-Item "$env:APPDATA\npm\node_modules\npm" -Recurse -Force
 ```
 
 Close and reopen PowerShell, confirm `npm -v` prints a version again, then
-re-run the Step 1 install. If `npm -v` still fails, re-run the Node
+re-run the Quick start step 2 install. If `npm -v` still fails, re-run the Node
 installer from [nodejs.org](https://nodejs.org) and choose **Repair**.
 Going forward, avoid `npm install -g npm` on Windows — let the Node
 installer manage npm's version.
 
-<a id="deep-dive-how-it-works"></a>
-
-## 🧠 Deep dive: how it works
-
-The rest of this README is for people who want to understand — or modify —
-what's actually happening under the hood. Skip it if you just want to use
-Harness day to day.
-
-### Design principles
-
-- **Platform-agnostic by construction.** No agent spec names a concrete model
-  or a platform-specific tool. Agents declare an abstract **model tier** and
-  abstract **capabilities**; the active platform adapter resolves them.
-- **Fresh-context by mandate.** Any agent that reasons about libraries, APIs,
-  versions, or CVEs runs with web search + **Context7** wired — never stale
-  training data.
-- **Spec-driven by default.** Harness installs vetted foundations (**Spec Kit**
-  and **Superpowers**) and surfaces their skills through a consent-gated
-  recommendation protocol.
-- **Auditable.** Every sub-agent is a diffable `.yaml` in `.subagents/`.
-
-## Architecture
-
-```
-                         +------------------------------+
-                         |        harness CLI           |
-                         |  init · build-agents · agent |
-                         |         · check              |
-                         +---------------+--------------+
-                                         |
-              +--------------------------+--------------------------+
-              v                          v                          v
-   +---------------------+   +-----------------------+   +---------------------+
-   |   .subagents/*.yaml |   |  .harness/            |   |  AGENTS.md          |
-   |  (source of truth)  |   |   model-map.yaml      |   |  (operating rules:  |
-   |  name, tier,        |   |   trigger-map.yaml    |   |   fresh-context for  |
-   |  capabilities,      |   |   allowlists/*.yaml   |   |   the main agent)   |
-   |  triggers, prompt   |   |   config.yaml         |   +---------------------+
-   +----------+----------+   |   (enabled platforms) |
-              |              +-----------+-----------+
-              |                          |
-              |   harness build-agents   |
-              v                          v
-   +-------------------------------------------------------------+
-   |                    RESOLUTION PIPELINE                       |
-   |                                                             |
-   |   model_tier  --[ model-map ]--->  concrete model           |
-   |   capabilities --[ adapter ]---->  native tools             |
-   |   triggers    --[ trigger-map ]->  native hooks / fallback  |
-   |   requires_fresh_context ------->  assert web_search+Context7|
-   |                              (else: fail with clear error)  |
-   +------------------------------+------------------------------+
-                                  |
-       +----------+----------+----+-----+----------+-----------+
-       v          v          v          v          v
-  +---------+ +-----------+ +---------+ +---------+ +-------------+
-  | Claude  | |Antigravity| | Codex   | | Cursor  | | Copilot     |
-  |.claude/ | |.agents/   | |.codex/  | |.cursor/ | |.github/     |
-  | agents/ | | skills/   | | agents/ | | agents/ | | agents/     |
-  | *.md    | | SKILL.md  | | *.toml  | | *.md    | | *.agent.md  |
-  +---------+ +-----------+ +---------+ +---------+ +-------------+
-       \_______ trigger -> native hook (or git-hook / harness fallback) ______/
-
-   Orchestrator (harness check) reads the same specs and computes a
-   resource-aware parallel batch: CPU cap + 70% memory budget + priority.
-
-   Agent artifacts:
-     commit-brain-agent        --writes--> harness-brain   (per-commit memory)
-     cross-repo-discovery-agent --reads--> harness-brain   (session digest) [Phase 2]
-     dependency-audit-agent    --writes--> DEPENDENCIES.md (latest/EOL/deprecated)
-     test-author-agent         --writes--> test files      (consent-gated)
-```
-
-## Agent roster (by trigger)
-
-```
-   on_init ───────────────┐   project start (greenfield & brownfield)
-     harness-init-agent    |   classify, gap report, install base tooling
-     spec-author-agent     |   Spec Kit: constitution -> spec -> plan -> tasks
-     dependency-audit-agent|   build/refresh DEPENDENCIES.md
-                           |
-   on_demand ─────────────┤   you ask, or the orchestrator routes a task
-     skills-router-agent   |   rank skills (consent-gated)
-     mcp-router-agent      |   rank MCP servers (consent-gated)
-     dependency-audit-agent|   re-audit dependencies on request
-     spec-author-agent     |   re-run / extend the Spec Kit flow on request
-     test-author-agent     |   review tests; author missing ones (on consent)
-                           |
-   on_check ──────────────┤   harness check [--all]  — pre-commit gate (parallel)
-     drift-reviewer-agent  |   semantic: docstring / doc / low-level-design drift
-     verifier-agent        |   executable: change covered by passing tests (no write)
-     test-author-agent     |   coverage/quality review
-                           |
-   on_commit ─────────────┘   git commit hook
-     commit-brain-agent    |   summarise the diff into harness-brain
-```
-
-> `drift-reviewer-agent` and `verifier-agent` also declare `on_demand`, so you
-> can invoke the verification pair directly (`/review-drift`, `/verify`) as well
-> as via the `on_check` gate.
-
 ## How it works
 
+`.subagents/*.yaml` is the single source of truth. `harness build-agents` resolves
+each abstract field against the active platform and writes native files.
+
+```mermaid
+flowchart TD
+    CLI["harness CLI<br/>init, build-agents, agent, check, hooks, skills, seed"]
+    SPEC[".subagents/*.yaml<br/>name, tier, capabilities, triggers, prompt"]
+    CFG[".harness/<br/>config, model-map, trigger-map"]
+    RULES["AGENTS.md<br/>operating rules"]
+    RES["Resolution pipeline"]
+    CLI --> SPEC
+    CLI --> CFG
+    CLI --> RULES
+    SPEC --> RES
+    CFG --> RES
+    RES -->|"model_tier + model-map"| M["concrete model"]
+    RES -->|"capabilities + adapter"| T["native tools"]
+    RES -->|"triggers + trigger-map"| H["native hooks or git-hook fallback"]
+    RES -->|"requires_fresh_context"| F["assert web_search + Context7"]
+    RES --> CC[".claude/"]
+    RES --> CU[".cursor/"]
+    RES --> CX[".codex/"]
+    RES --> AG[".agents/"]
+    RES --> GH[".github/agents/"]
 ```
-.subagents/<agent>.yaml      <- canonical, platform-agnostic source of truth
+
+The generated layout per platform:
+
+```
+.subagents/<agent>.yaml            <- canonical, platform-agnostic source of truth
         |  harness build-agents
         v
 .claude/agents/<name>.md           <- Claude Code  (sub-agent, YAML frontmatter)
 .cursor/agents/<name>.md           <- Cursor       (sub-agent, YAML frontmatter)
 .codex/agents/<name>.toml          <- Codex        (custom agent, TOML)
-.agents/skills/<name>/SKILL.md     <- Antigravity  (Agent Skill — the sub-agent)
-.github/agents/<name>.agent.md     <- Copilot      (custom agent — the sub-agent)
+.agents/skills/<name>/SKILL.md     <- Antigravity  (Agent Skill, the sub-agent)
+.github/agents/<name>.agent.md     <- Copilot      (custom agent, the sub-agent)
 
 .claude/skills/<command>/SKILL.md  <- decision-routed skill  (when expose_as has "skill")
 .claude/commands/<command>.md      <- manual slash command    (when expose_as has "command")
-   (per-platform native paths for skill/command — see the table below;
+   (per-platform native paths for skill/command: see the table below;
     on Antigravity & Copilot the sub-agent above IS the decision-routed skill)
 ```
 
-- **Edit the YAML, not the generated files.** Generated files are overwritten on
-  every build.
-- **Model names live in one place** — `.harness/model-map.yaml`. Agents declare
-  a `model_tier` (`fast` / `reasoning` / `deep` / `inherit`); the adapter
-  substitutes the concrete model per platform. Update the map, nothing else
-  changes.
-- **Capabilities are abstract** (`read` / `write` / `exec` / `web_search` /
-  `web_fetch`). The adapter maps them to native tools.
-- **Triggers are abstract** (`on_init` / `on_commit` / `on_check` /
-  `on_demand`); see below.
+- **Edit the YAML, not the generated files.** Generated files are overwritten on every build.
+- **Model names live in one place**: `.harness/model-map.yaml`. Update the map, nothing else changes.
+- **Capabilities are abstract** (`read` / `write` / `exec` / `web_search` / `web_fetch`); the adapter maps them to native tools.
+- **Triggers are abstract** (`on_init` / `on_commit` / `on_check` / `on_demand`); see below.
+
+### Agent lifecycle by trigger
+
+```mermaid
+flowchart LR
+    I["on_init<br/>project start"] --> I1["harness-init-agent"]
+    I --> I2["spec-author-agent"]
+    I --> I3["dependency-audit-agent"]
+    D["on_demand<br/>you ask"] --> D1["skills-router-agent<br/>mcp-router-agent"]
+    D --> D2["test-author-agent<br/>dependency-audit-agent<br/>spec-author-agent"]
+    C["on_check<br/>harness check, pre-commit"] --> C1["drift-reviewer-agent"]
+    C --> C2["verifier-agent"]
+    C --> C3["test-author-agent"]
+    M["on_commit<br/>git commit hook"] --> M1["commit-brain-agent"]
+    M1 -->|writes| B[("harness-brain")]
+```
+
+`drift-reviewer-agent` and `verifier-agent` also declare `on_demand`, so you can
+invoke the verification pair directly (`/review-drift`, `/verify`) as well as via
+the `on_check` gate.
 
 ### Triggers → native event hooks
 
@@ -593,50 +527,93 @@ the-loop is the default; the autonomous controller is opt-in and deferred. See
 | `drift-reviewer-agent` | reasoning | Pre-commit semantic check: flag/fix docstring, doc & low-level-design drift vs the diff (docs only) |
 | `verifier-agent` | reasoning | Pre-commit executable check: independently confirm the change is covered by passing tests (no `write`; delegates authoring to `test-author-agent`, owns the verdict) |
 
-See [`docs/spec-subagents.md`](docs/spec-subagents.md) for the full design spec
-and the Phase 2/3 catalog. New to this codebase, or new to AI agents in
-general? Read [`docs/factories-as-code.md`](docs/factories-as-code.md) first —
-a plain-English walkthrough (with diagrams) of how a spec becomes a running
-agent, how triggers actually fire, and how `npm run eval:agents` keeps the
-shipped specs honest.
+See [`docs/spec-subagents.md`](docs/spec-subagents.md) for the full design spec and the Phase 2/3 catalog. New to AI agents? Read [`docs/factories-as-code.md`](docs/factories-as-code.md) first.
 
-<a id="contributing"></a>
+## Project structure
 
-## 🤝 Contributing
+```
+harness-stack/
+├── src/
+│   ├── cli.ts            ← CLI entry (commander)
+│   ├── schema.ts         ← canonical .subagents/*.yaml shape (Zod)
+│   ├── adapters/         ← one file per platform (claude-code, cursor, codex, antigravity, copilot)
+│   ├── resolution/       ← model-tier / capability / trigger / fresh-context resolvers
+│   ├── commands/         ← what each `harness <command>` does
+│   ├── orchestrator/     ← resource-aware scheduler
+│   ├── discovery/        ← reuse-before-create agent discovery
+│   ├── foundation/       ← Spec Kit, Superpowers, git hooks
+│   ├── skills/ loop/ brain/ util/
+├── templates/
+│   ├── agents/*.yaml     ← the shipped v1 agent specs (the "product")
+│   ├── allowlists/ evals/ brain/
+│   ├── model-map.yaml  trigger-map.yaml  AGENTS.fragment.md
+├── scripts/              ← prepare, verify-dist, check-brain-template, eval-agents
+├── tests/                ← vitest suites
+├── docs/                 ← design docs and the GitHub Pages landing page
+└── dist/                 ← compiled output (committed on purpose)
+```
 
-Harness Stack is open source (MIT) and **contributions are welcome** — you
-don't need deep AI experience to help. Good starting points: fixing a docs
-typo, adding a worked example, improving an error message, or picking up a
-Phase 2 agent from [`docs/spec-subagents.md`](docs/spec-subagents.md).
+## Development
 
-**Quick setup:**
+Requires Node.js 22+ (see `.nvmrc`), npm and git.
 
 ```bash
 git clone https://github.com/exponen-agi/harness-stack.git
 cd harness-stack
 npm install
-npm test              # vitest — should be all green before you start
+npm test
 ```
 
-**While you work:**
+| Script | Purpose |
+| --- | --- |
+| `npm run lint` / `lint:fix` | ESLint over `src` and `tests` |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` / `test:watch` | Vitest |
+| `npm run build` | Compile to `dist/` |
+| `npm run harness -- <command>` | Run the CLI from source |
+| `npm run eval:agents` | Lint and validate the shipped agent specs (CI uses `-- --strict`) |
+| `npm run verify:dist` | Fail if committed `dist/` differs from a fresh build |
+| `npm run verify:brain-template` | Diff `templates/brain/` against the harness-brain repo (sibling `../harness-brain`, a path argument, or `HARNESS_BRAIN_DIR`) |
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, spec evals and build
+on Ubuntu, macOS and Windows with Node 22 and 24, plus a dependency audit,
+a `dist/` integrity check and brain-template drift check. Before opening a PR:
 
 ```bash
-npm run typecheck             # tsc --noEmit
-npm test                      # vitest
-npm run build                 # compile to dist/
-npm run verify:brain-template # templates/brain/ matches the harness-brain repo
+npm run lint && npm run typecheck && npm test && npm run build && npm run eval:agents -- --strict
 ```
 
+## Documentation
+
+| Doc | Contents |
+| --- | --- |
+| [`docs/factories-as-code.md`](docs/factories-as-code.md) | Plain-English walkthrough of how a spec becomes a running agent and how evals keep specs honest. Start here |
+| [`docs/spec-subagents.md`](docs/spec-subagents.md) | Full design spec and Phase 2/3 catalog |
+| [`docs/agentic-loop.md`](docs/agentic-loop.md) | How Harness relates to agentic-loop patterns |
+| [`docs/index.html`](docs/index.html) | Landing page source |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release notes |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution guide |
+| [`SECURITY.md`](SECURITY.md) | Security policy |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Community standards |
+
+## Contributing
+
+Contributions are welcome and you do not need deep AI experience. Good starting
+points: fixing a docs typo, adding a worked example, improving an error message,
+or picking up a Phase 2 agent from [`docs/spec-subagents.md`](docs/spec-subagents.md).
 `templates/brain/` is the offline scaffold and must stay in sync with the
 [harness-brain](https://github.com/exponen-agi/harness-brain) example repo.
-`verify:brain-template` diffs them (defaults to a `../harness-brain` sibling
-checkout, or pass a path / set `HARNESS_BRAIN_DIR`); CI runs the same check.
 
-Full guide (branching, commit style, opening a PR, what a good first PR looks
-like): see [**CONTRIBUTING.md**](CONTRIBUTING.md). Questions or ideas? Open a
-[GitHub issue](https://github.com/exponen-agi/harness-stack/issues) — there's
-no such thing as a question too small.
+See [**CONTRIBUTING.md**](CONTRIBUTING.md) for branching, commit style and what a
+good first PR looks like. Questions or ideas? Open a
+[GitHub issue](https://github.com/exponen-agi/harness-stack/issues). Please follow
+the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Please do not open public issues for vulnerabilities. See [SECURITY.md](SECURITY.md)
+for supported versions and how to report privately.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
