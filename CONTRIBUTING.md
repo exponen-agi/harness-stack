@@ -30,7 +30,7 @@ than writing code that doesn't land.
 
 ## Development setup
 
-You need **Node.js 22+**, **npm**, and **git**.
+You need **Node.js 22.12+**, **npm**, and **git**.
 
 ```bash
 git clone https://github.com/exponen-agi/harness-stack.git

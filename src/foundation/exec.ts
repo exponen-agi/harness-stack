@@ -7,6 +7,18 @@ export interface RunResult {
   stderr: string;
 }
 
+/**
+ * Tools installed by npm on Windows (`claude`, `npm`, `npx`) are `.cmd` shims.
+ * Node cannot start a `.cmd` file without a shell, so we turn the shell on for
+ * this short fixed list only. Every other command keeps `shell: false`, so
+ * user-supplied text (like a repo URL passed to `git`) is never shell-parsed.
+ */
+const WINDOWS_CMD_SHIMS = new Set(["claude", "npm", "npx", "pnpm", "yarn"]);
+
+export function needsWindowsShell(command: string, platform: string = process.platform): boolean {
+  return platform === "win32" && WINDOWS_CMD_SHIMS.has(command.toLowerCase());
+}
+
 export function run(
   command: string,
   args: string[],
@@ -15,7 +27,7 @@ export function run(
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd: opts.cwd ?? process.cwd(),
-      shell: false,
+      shell: needsWindowsShell(command),
     });
     let stdout = "";
     let stderr = "";
