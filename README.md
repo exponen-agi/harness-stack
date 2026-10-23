@@ -69,14 +69,14 @@ anything). It assumes no prior experience with Harness or with AI agents.
 
 ### Step 0 — Check prerequisites
 
-You need **Node.js 22 or newer** and **git**. Check what you have:
+You need **Node.js 22.12 or newer** and **git**. Check what you have:
 
 ```bash
-node -v     # must print v22.x.x or higher
+node -v     # must print v22.12.0 or higher
 git --version
 ```
 
-Don't have Node 22+? Install it from [nodejs.org](https://nodejs.org) or with
+Don't have Node 22.12+? Install it from [nodejs.org](https://nodejs.org) or with
 a version manager like [nvm](https://github.com/nvm-sh/nvm)
 (`nvm install 22 && nvm use 22`). *(Node 20 reached end-of-life in April 2026
 — it no longer receives security fixes, so Harness no longer supports it.)*
@@ -246,7 +246,14 @@ harness skills      # shows: agent -> which files it produced -> how to invoke i
 harness agent list  # browse every registered sub-agent and what it does
 harness hooks       # see which native event (or git hook) triggers each agent
 harness check --all # preview the pre-commit orchestration plan
+harness doctor      # health check: what is wrong, and the exact command to fix it
 ```
+
+> **Something not working?** Run `harness doctor` first. It only reads files
+> (it never changes anything) and works the same on macOS, Windows, and Linux.
+> It checks your Node.js and git, your agent specs, and whether the generated
+> agent files are up to date. Each problem comes with the command to fix it.
+> If it finds a real problem it exits with code `1`, so you can also use it in CI.
 
 ### Step 6 — Commit the generated files
 

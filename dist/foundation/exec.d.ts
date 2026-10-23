@@ -3,6 +3,7 @@ export interface RunResult {
     stdout: string;
     stderr: string;
 }
+export declare function needsWindowsShell(command: string, platform?: string): boolean;
 export declare function run(command: string, args: string[], opts?: {
     cwd?: string;
     timeoutMs?: number;
