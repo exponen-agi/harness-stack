@@ -17,6 +17,13 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- `harness doctor`: a read-only health check for developers new to AI tooling.
+  It checks Node.js and git, validates the agent specs, compares the generated
+  agent files with a fresh build (ignoring Windows line endings), and counts
+  unverified trigger bindings. Every problem prints the command that fixes it,
+  and the exit code is `1` when something is broken. Covered by
+  `tests/doctor.test.ts`.
+
 - `tests/docs-roster-sync.test.ts`: CI now fails if the agent tables in
   `README.md` and `docs/factories-as-code.md` drift from
   `templates/agents/*.yaml` (names, tier, triggers, write access).
@@ -78,6 +85,16 @@ pre-1.0, so breaking changes may still land in a minor version.
   so teams weighing it as a dependency have that context up front.
 
 ### Fixed
+
+- Windows: `harness init` could not start `claude` (an npm `.cmd` shim) and
+  `npm run verify:dist` could not start `npm`, because Node does not run
+  `.cmd` files without a shell. A short fixed list of npm-style tools
+  (`claude`, `npm`, `npx`, `pnpm`, `yarn`) now runs through the shell on
+  Windows only; everything else, such as `git` with a user-given URL, still
+  runs with `shell: false`.
+- The Node.js floor is now `>=22.12.0` in `package.json`, README and
+  CONTRIBUTING. `commander` v15 requires 22.12, so `>=22` allowed installs
+  that would crash on start.
 
 - `verifier-agent`, `test-author-agent`, and `drift-reviewer-agent` no longer
   hand code defects to a `bug-fix-agent` that isn't shipped yet — they now

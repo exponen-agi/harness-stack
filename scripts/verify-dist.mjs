@@ -37,7 +37,12 @@ export function changedPaths(porcelain) {
 }
 
 function main() {
-  execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
+  // On Windows `npm` is a `.cmd` shim, which Node can only start through a shell.
+  execFileSync("npm", ["run", "build"], {
+    cwd: root,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
 
   const porcelain = execFileSync(
     "git",

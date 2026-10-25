@@ -8,6 +8,7 @@ import { runCheck } from "./commands/check.js";
 import { runHooks } from "./commands/hooks.js";
 import { runSkills } from "./commands/skills.js";
 import { runSeed } from "./commands/seed.js";
+import { runDoctor } from "./commands/doctor.js";
 import { loadPlatforms } from "./project.js";
 import { listPlatforms } from "./adapters/registry.js";
 import { log } from "./util/log.js";
@@ -118,6 +119,14 @@ program
     .option("--repo <name>", "repo name used to locate the brain folder; default: cwd basename")
     .action(async (o) => {
     await runSeed({ root: process.cwd(), repoName: o.repo });
+});
+program
+    .command("doctor")
+    .description("Check your setup and say what to fix (read-only; exit code 1 on problems).")
+    .action(async () => {
+    const result = await runDoctor({ root: process.cwd() });
+    if (result === "fail")
+        process.exitCode = 1;
 });
 program.parseAsync(process.argv).catch((err) => {
     log.error(err instanceof Error ? err.message : String(err));

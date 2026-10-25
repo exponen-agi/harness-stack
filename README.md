@@ -87,10 +87,10 @@ Follow this top to bottom in **your own** project (full-stack app, backend, mobi
 
 ### 1. Prerequisites
 
-**Node.js 22 or newer** and **git**.
+**Node.js 22.12 or newer** and **git**.
 
 ```bash
-node -v     # must print v22.x.x or higher
+node -v     # must print v22.12.0 or higher
 git --version
 ```
 
@@ -221,7 +221,14 @@ harness skills      # agent -> files produced -> how to invoke it
 harness agent list  # browse every registered sub-agent
 harness hooks       # which native event (or git hook) triggers each agent
 harness check --all # preview the pre-commit orchestration plan
+harness doctor      # health check: what is wrong, and the exact command to fix it
 ```
+
+> **Something not working?** Run `harness doctor` first. It only reads files
+> (it never changes anything) and works the same on macOS, Windows, and Linux.
+> It checks your Node.js and git, your agent specs, and whether the generated
+> agent files are up to date. Each problem comes with the command to fix it.
+> If it finds a real problem it exits with code `1`, so you can also use it in CI.
 
 ### 6. Commit the generated files
 
