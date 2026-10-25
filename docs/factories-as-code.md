@@ -244,6 +244,12 @@ paid step is in [`templates/evals/eval-gate.example.yml`](../templates/evals/eva
 It skips safely when no API key is set, uses read-only permissions, and has a
 time limit so a stuck run cannot burn money.
 
+**Why the versions are pinned.** The paid step holds your API key. In 2026,
+security audits found many malicious agent skills and MCP servers, so we never
+run `@latest` there. Every `npx` call in `templates/evals/` uses an exact
+version (`promptfoo@0.124.1`), and a test fails if one is not pinned. To
+upgrade, change the number in a normal pull request that people can review.
+
 Until then, `npm run eval:agents` is the cheapest, most reliable thing a small
 team can lean on: it's checked into CI, requires no extra account or API key,
 and fails loudly and specifically instead of shipping a broken agent quietly.

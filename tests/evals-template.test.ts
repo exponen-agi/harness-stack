@@ -40,4 +40,23 @@ describe("templates/evals starter kit", () => {
     expect(raw).toContain("templates/evals/promptfooconfig.yaml");
     await expect(read("promptfooconfig.yaml")).resolves.toBeTruthy();
   });
+
+  it("every npx call in the kit pins an exact version (no @latest, no bare names)", async () => {
+    // The paid step holds an API key. Running an unpinned package there would
+    // hand the key to whatever version is newest today.
+    for (const name of [
+      "eval-gate.example.yml",
+      "promptfooconfig.yaml",
+      "README.md",
+    ]) {
+      const raw = await read(name);
+      expect(raw, `${name} must not use @latest`).not.toMatch(/@latest\b/);
+      const calls = [...raw.matchAll(/\bnpx\s+(?:--?[\w-]+\s+)*([@\w./-]+)/g)];
+      for (const [, pkg] of calls) {
+        expect(pkg, `${name}: "npx ${pkg}" must look like name@x.y.z`).toMatch(
+          /^[@\w./-]+@\d+\.\d+\.\d+$/,
+        );
+      }
+    }
+  });
 });

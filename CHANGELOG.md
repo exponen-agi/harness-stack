@@ -6,6 +6,15 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ## [Unreleased]
 
+### Security
+
+- `templates/evals/`: the eval gate (which runs with your API key) now pins
+  `promptfoo@0.124.1` and `tsx@4.23.15` instead of `@latest` / unpinned `npx`,
+  so a bad new release cannot receive your key. `tests/evals-template.test.ts`
+  fails if any `npx` call in the kit is unpinned.
+- `tests/mcp-allowlist-pinning.test.ts`: the curated MCP allowlist must use
+  `https` for URL servers and exact versions for `npx` servers.
+
 ### Added
 
 - `harness doctor`: a read-only health check for developers new to AI tooling.

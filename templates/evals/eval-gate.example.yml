@@ -39,17 +39,20 @@ jobs:
           node-version: 24
 
       - name: Free check (no key needed) - agent spec hygiene
-        run: npx --yes tsx scripts/eval-agents.mjs --strict
+        run: npx --yes tsx@4.23.15 scripts/eval-agents.mjs --strict
         continue-on-error: false
 
       - name: Paid check - agent output quality (Promptfoo)
         if: env.HAS_KEY == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # Version is pinned on purpose: this step holds your API key, so it must
+        # not run whatever "latest" happens to be today (supply-chain risk).
+        # Bump it yourself, in a reviewed PR.
         # --no-cache: always judge fresh output.
         # --max-concurrency 2: keeps token spend and rate limits predictable.
         run: >
-          npx --yes promptfoo@latest eval
+          npx --yes promptfoo@0.124.1 eval
           -c templates/evals/promptfooconfig.yaml
           --no-cache --max-concurrency 2 -o results.json
 

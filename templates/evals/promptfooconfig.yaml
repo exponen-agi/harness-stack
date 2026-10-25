@@ -10,7 +10,7 @@
 #   1. Paste your agent's real prompt into system-prompt.example.txt
 #      (or copy this whole templates/evals/ folder and point at your own).
 #   2. Pick a provider below and export its API key.
-#   3. npx promptfoo@latest eval -c templates/evals/promptfooconfig.yaml
+#   3. npx promptfoo@0.124.1 eval -c templates/evals/promptfooconfig.yaml
 
 description: "Harness Stack agent output-quality starter evals"
 
