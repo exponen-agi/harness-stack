@@ -340,3 +340,24 @@ industry is converging on independently, as of late 2025 / 2026:
 The one-line takeaway: adopting this pattern isn't a bet on one vendor or one
 model. It's a bet on plain, versioned, testable files — which is also why
 none of this requires you to have any AI background to read or review.
+
+## Who runs, and when? (`harness explain`)
+
+You do not need to read the YAML to know when an agent runs. Ask Harness:
+
+```bash
+harness explain             # every agent
+harness explain verifier    # one agent (name or short name)
+```
+
+Each agent has a **trigger**. Harness turns it into the real hook of your AI tool:
+
+```mermaid
+flowchart LR
+    A["You: git commit"] --> B["on_commit<br/>git post-commit hook"]
+    C["You: harness check / CI"] --> D["on_check<br/>drift + verifier in parallel"]
+    E["New session"] --> F["on_init<br/>harness-init-agent"]
+    G["You: /verify or plain words"] --> H["on_demand<br/>any agent"]
+```
+
+Same command on macOS, Linux and Windows (PowerShell or cmd).

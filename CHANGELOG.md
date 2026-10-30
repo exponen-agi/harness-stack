@@ -17,6 +17,11 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- `harness explain [agent]`: one plain-English card per agent (goal, when it
+  runs on your platform, how to run it by hand, what it may change). It joins
+  what `harness hooks` and `harness skills` show separately. Read-only; works
+  the same on macOS, Linux and Windows. Covered by `tests/explain.test.ts`.
+
 - `harness doctor`: a read-only health check for developers new to AI tooling.
   It checks Node.js and git, validates the agent specs, compares the generated
   agent files with a fresh build (ignoring Windows line endings), and counts
