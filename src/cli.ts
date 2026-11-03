@@ -9,6 +9,7 @@ import { runHooks } from "./commands/hooks.js";
 import { runSkills } from "./commands/skills.js";
 import { runSeed } from "./commands/seed.js";
 import { runDoctor } from "./commands/doctor.js";
+import { runExplain } from "./commands/explain.js";
 import { loadPlatforms } from "./project.js";
 import { listPlatforms } from "./adapters/registry.js";
 import { log } from "./util/log.js";
@@ -121,6 +122,20 @@ program
       : await loadPlatforms(root, DEFAULT_PLATFORM);
     for (const platform of platforms) {
       await runSkills({ root, platform });
+    }
+  });
+
+program
+  .command("explain [agent]")
+  .description("Explain each agent in plain English: what it does, when it runs, how to run it.")
+  .option("-p, --platform <platform>", `target one platform (${listPlatforms().join("|")}); default: all configured`)
+  .action(async (agent: string | undefined, o) => {
+    const root = process.cwd();
+    const platforms = o.platform
+      ? [o.platform]
+      : await loadPlatforms(root, DEFAULT_PLATFORM);
+    for (const platform of platforms) {
+      await runExplain({ root, platform, agent });
     }
   });
 

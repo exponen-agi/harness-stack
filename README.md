@@ -220,6 +220,7 @@ to see the exact slash command for each agent (e.g. `/verify`, `/review-drift`).
 harness skills      # agent -> files produced -> how to invoke it
 harness agent list  # browse every registered sub-agent
 harness hooks       # which native event (or git hook) triggers each agent
+harness explain     # plain-English card per agent: what it does, when it runs, how to run it
 harness check --all # preview the pre-commit orchestration plan
 harness doctor      # health check: what is wrong, and the exact command to fix it
 ```
@@ -252,6 +253,7 @@ git commit -m "Add Harness sub-agents"
 | `harness check` | Compute the resource-aware orchestration plan. Flag: `--all` includes all `on_check` and `on_demand` reviewers |
 | `harness hooks` | Show how agent triggers resolve to native event hooks. Flag: `-p, --platform` |
 | `harness skills` | Show how agents are exposed as skills and slash commands. Flag: `-p, --platform` |
+| `harness explain [agent]` | Explain each agent in plain English: goal, when it runs (trigger to real hook), how to run it by hand, what it can do. Read-only. Flag: `-p, --platform` |
 | `harness seed` | Print the iteration seed (north-star plus brain state) for loop and context reset. Flag: `--repo <name>` |
 
 ## Configuration
