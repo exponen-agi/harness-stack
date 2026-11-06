@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import path from "node:path";
+import os from "node:os";
+import { execFileSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
@@ -58,5 +60,44 @@ describe("templates/evals starter kit", () => {
         );
       }
     }
+  });
+
+  describe("quality gate step", () => {
+    const gatePath = path.join(evalsDir, "eval-gate.example.yml");
+
+    /** Run the gate's real inline script against a fake results.json. */
+    async function runGate(stats: Record<string, number>): Promise<number> {
+      const wf = YAML.parse(await fs.readFile(gatePath, "utf8")) as {
+        jobs: Record<string, { steps: { name?: string; run?: string }[] }>;
+      };
+      const step = Object.values(wf.jobs)
+        .flatMap((j) => j.steps)
+        .find((st) => st.name?.startsWith("Quality gate"));
+      const run = step?.run ?? "";
+      const script = run.slice(run.indexOf('"') + 1, run.lastIndexOf('"'));
+      const dir = await fs.mkdtemp(path.join(os.tmpdir(), "gate-"));
+      try {
+        await fs.writeFile(path.join(dir, "results.json"), JSON.stringify({ results: { stats } }));
+        execFileSync(process.execPath, ["-e", script], { cwd: dir, stdio: "pipe" });
+        return 0;
+      } catch (err) {
+        return (err as { status?: number }).status ?? 99;
+      } finally {
+        await fs.rm(dir, { recursive: true, force: true });
+      }
+    }
+
+    it("passes only when something passed and nothing failed or errored", async () => {
+      expect(await runGate({ successes: 4, failures: 0, errors: 0 })).toBe(0);
+    });
+    it("fails on a failed scenario", async () => {
+      expect(await runGate({ successes: 3, failures: 1, errors: 0 })).toBe(1);
+    });
+    it("fails on a provider error (bad key, outage) — the old gate let this pass", async () => {
+      expect(await runGate({ successes: 3, failures: 0, errors: 1 })).toBe(1);
+    });
+    it("fails when no scenario ran at all", async () => {
+      expect(await runGate({ successes: 0, failures: 0, errors: 0 })).toBe(1);
+    });
   });
 });

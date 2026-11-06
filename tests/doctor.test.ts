@@ -9,6 +9,8 @@ import {
   checkGenerated,
   countUnverified,
   checkUnverifiedTriggers,
+  checkModelMapFreshness,
+  MODEL_MAP_MAX_AGE_DAYS,
   overallSeverity,
   runDoctor,
 } from "../src/commands/doctor.js";
@@ -102,5 +104,42 @@ describe("runDoctor on an empty folder", () => {
   });
   it("fails and tells the developer to run harness init", async () => {
     expect(await runDoctor({ root })).toBe("fail");
+  });
+});
+
+describe("checkModelMapFreshness", () => {
+  const now = new Date("2026-11-06T00:00:00Z");
+
+  it("is ok when reviewed recently", () => {
+    const f = checkModelMapFreshness("# last-reviewed: 2026-10-01\nclaude-code: {}\n", now);
+    expect(f.severity).toBe("ok");
+  });
+
+  it("is ok exactly at the limit, warns one day after", () => {
+    const edge = new Date(now.getTime() - MODEL_MAP_MAX_AGE_DAYS * 86_400_000);
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    expect(checkModelMapFreshness(`# last-reviewed: ${iso(edge)}`, now).severity).toBe("ok");
+    const older = new Date(edge.getTime() - 86_400_000);
+    expect(checkModelMapFreshness(`# last-reviewed: ${iso(older)}`, now).severity).toBe("warn");
+  });
+
+  it("warns with a fix hint when the date is old", () => {
+    const f = checkModelMapFreshness("# last-reviewed: 2026-01-01\n", now);
+    expect(f.severity).toBe("warn");
+    expect(f.message).toContain("days ago");
+    expect(f.fix).toContain("model-map.yaml");
+  });
+
+  it("warns when the line is missing, and tolerates Windows line endings", () => {
+    expect(checkModelMapFreshness("claude-code: {}\n", now).severity).toBe("warn");
+    expect(checkModelMapFreshness("# last-reviewed: 2026-11-01\r\nx: 1\r\n", now).severity).toBe("ok");
+  });
+
+  it("the shipped template always carries a valid date", async () => {
+    const text = await fs.readFile(
+      path.resolve(__dirname, "..", "templates", "model-map.yaml"),
+      "utf8",
+    );
+    expect(checkModelMapFreshness(text, now).severity).toBe("ok");
   });
 });

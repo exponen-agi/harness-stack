@@ -4,7 +4,10 @@
 # platforms ship new models; nothing else in .subagents/ changes.
 # Run `harness update` (when available) to refresh it from the shipped default.
 #
-# Lineups below are current as of September 2026 and WILL drift — edit freely.
+# Lineups below are current as of November 2026 and WILL drift — edit freely.
+# `harness doctor` warns when the date on the next line is older than 90 days.
+# After you check the model names, set it to today's date (YYYY-MM-DD).
+# last-reviewed: 2026-11-06
 #
 # Claude model IDs always carry the "claude-" prefix (e.g. "claude-opus-5-5",
 # not "opus-5-5") — a bare tier name is not a real model ID and will fail at
@@ -12,8 +15,8 @@
 # claude-code block so this class of bug can't ship silently again.
 
 claude-code:
-  fast:      claude-haiku-4-5-20251001
-  reasoning: claude-sonnet-5
+  fast:      claude-haiku-5-5
+  reasoning: claude-sonnet-5-5
   deep:      claude-opus-5-5
   inherit:   inherit
 

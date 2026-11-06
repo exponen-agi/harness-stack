@@ -56,12 +56,18 @@ jobs:
           -c templates/evals/promptfooconfig.yaml
           --no-cache --max-concurrency 2 -o results.json
 
-      - name: Quality gate - fail on any failed scenario
+      - name: Quality gate - fail on any failed or errored scenario
         if: env.HAS_KEY == 'true'
+        # A provider error (bad key, rate limit, outage) is counted as an
+        # "error", not a "failure". Count both, and also fail when nothing ran,
+        # so a broken run can never look like a pass.
         run: |
-          FAILURES=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json','utf8')).results.stats.failures)")
-          echo "Failed scenarios: $FAILURES"
-          test "$FAILURES" -eq 0
+          node -e "
+          const s = JSON.parse(require('fs').readFileSync('results.json','utf8')).results.stats;
+          const ok = s.successes ?? 0, bad = (s.failures ?? 0) + (s.errors ?? 0);
+          console.log('Passed: ' + ok + ', failed or errored: ' + bad);
+          process.exit(bad === 0 && ok > 0 ? 0 : 1);
+          "
 
       - name: Note when the paid check was skipped
         if: env.HAS_KEY != 'true'

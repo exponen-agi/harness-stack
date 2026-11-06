@@ -68,7 +68,7 @@ What this means day to day:
   Cursor version quietly behaving differently from the Claude Code version
   because someone forgot to update one of them.
 - **The specs never mention a real model name or a real hook API.** A spec
-  says `model_tier: reasoning`, not `claude-sonnet-5`. `model-map.yaml` and
+  says `model_tier: reasoning`, not `claude-sonnet-5-5`. `model-map.yaml` and
   `trigger-map.yaml` are the *only* two files that know about actual model
   IDs and actual platform APIs — see §4. That's what makes one spec buildable
   for five different tools.
@@ -155,6 +155,9 @@ the nine agent specs above never have to:
 - **`templates/model-map.yaml`** — maps an abstract `model_tier` (`fast`,
   `reasoning`, `deep`) to a real model name, per tool. Model line-ups change
   every few months; when they do, you edit this one file, not nine specs.
+  The file has a `# last-reviewed: YYYY-MM-DD` line. After you check the model
+  names, set it to today. `harness doctor` warns when it is older than 90 days,
+  so stale names are found by a tool, not by a failed run.
 - **`templates/trigger-map.yaml`** — maps an abstract trigger to the real
   hook/event for each tool, and marks each mapping `verified: true/false`.
   `false` means "this is our best guess — `harness-init-agent` is required to
