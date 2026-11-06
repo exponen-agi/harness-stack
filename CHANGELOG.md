@@ -15,7 +15,29 @@ pre-1.0, so breaking changes may still land in a minor version.
 - `tests/mcp-allowlist-pinning.test.ts`: the curated MCP allowlist must use
   `https` for URL servers and exact versions for `npx` servers.
 
+### Fixed
+
+- `templates/evals/eval-gate.example.yml`: the quality gate now counts
+  provider **errors** as well as failed scenarios, and fails when no scenario
+  ran. Before, a bad API key or a provider outage was reported by promptfoo as
+  "errors" (not "failures"), so the gate could pass with nothing checked.
+  `tests/evals-template.test.ts` now runs the gate's real script against
+  sample results.
+
 ### Added
+
+- `harness doctor` warns when the model names in `.harness/model-map.yaml` were
+  last reviewed more than 90 days ago (or have no `# last-reviewed:` date).
+  `templates/model-map.yaml` now carries that date. Covered by
+  `tests/doctor.test.ts`.
+- `docs/ecosystem-notes.md`: short plain-English notes on the Nov 2026 AI
+  engineering landscape, what Harness already does, and what we may do next.
+
+### Changed
+
+- `templates/model-map.yaml` and the eval config use the current Claude IDs
+  (`claude-haiku-5-5`, `claude-sonnet-5-5`). Re-run `harness build-agents` to
+  refresh generated files.
 
 - `harness explain [agent]`: one plain-English card per agent (goal, when it
   runs on your platform, how to run it by hand, what it may change). It joins

@@ -19,7 +19,7 @@ providers:
   # templates/model-map.yaml — the eval is only meaningful if it tests the
   # same model the agent actually runs on. A couple of other common options
   # are commented out below as a starting point.
-  - id: anthropic:messages:claude-sonnet-5
+  - id: anthropic:messages:claude-sonnet-5-5
     config:
       temperature: 0
   # - id: openai:gpt-5

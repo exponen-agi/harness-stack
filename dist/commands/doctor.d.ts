@@ -29,6 +29,14 @@ export declare function checkGenerated(platform: string, state: GeneratedState):
 /** Count trigger bindings that are still unconfirmed best-guess defaults. */
 export declare function countUnverified(map: TriggerMap, platforms: readonly string[]): number;
 export declare function checkUnverifiedTriggers(count: number): Finding;
+/** A model lineup older than this many days is probably out of date. */
+export declare const MODEL_MAP_MAX_AGE_DAYS = 90;
+/**
+ * Model names change every few months. `model-map.yaml` carries a comment line
+ * `# last-reviewed: YYYY-MM-DD`. Warn when that date is missing or too old.
+ * `now` is a parameter so tests do not depend on today's date.
+ */
+export declare function checkModelMapFreshness(text: string, now?: Date, maxAgeDays?: number): Finding;
 /** Worst severity wins: fail > warn > ok. */
 export declare function overallSeverity(findings: readonly Finding[]): Severity;
 export interface DoctorOptions {

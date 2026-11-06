@@ -124,6 +124,46 @@ export function checkUnverifiedTriggers(count: number): Finding {
   };
 }
 
+/** A model lineup older than this many days is probably out of date. */
+export const MODEL_MAP_MAX_AGE_DAYS = 90;
+
+const LAST_REVIEWED = /^#\s*last-reviewed:\s*(\d{4})-(\d{2})-(\d{2})\s*$/m;
+
+/**
+ * Model names change every few months. `model-map.yaml` carries a comment line
+ * `# last-reviewed: YYYY-MM-DD`. Warn when that date is missing or too old.
+ * `now` is a parameter so tests do not depend on today's date.
+ */
+export function checkModelMapFreshness(
+  text: string,
+  now: Date = new Date(),
+  maxAgeDays: number = MODEL_MAP_MAX_AGE_DAYS,
+): Finding {
+  const fix =
+    "Check each platform's current model list, update .harness/model-map.yaml, then set `# last-reviewed:` to today's date (YYYY-MM-DD).";
+  const m = LAST_REVIEWED.exec(text);
+  if (!m) {
+    return {
+      severity: "warn",
+      message: "model-map.yaml has no `# last-reviewed: YYYY-MM-DD` line, so we cannot tell if the model names are current",
+      fix,
+    };
+  }
+  const reviewed = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (Number.isNaN(reviewed)) {
+    return { severity: "warn", message: "model-map.yaml `last-reviewed` is not a valid date", fix };
+  }
+  const days = Math.floor((now.getTime() - reviewed) / 86_400_000);
+  if (days > maxAgeDays) {
+    return {
+      severity: "warn",
+      message: `Model names were last reviewed ${days} days ago (limit: ${maxAgeDays})`,
+      fix,
+    };
+  }
+  return { severity: "ok", message: "Model names were reviewed recently" };
+}
+
 /** Worst severity wins: fail > warn > ok. */
 export function overallSeverity(findings: readonly Finding[]): Severity {
   if (findings.some((f) => f.severity === "fail")) return "fail";
@@ -193,6 +233,9 @@ export async function runDoctor(opts: DoctorOptions): Promise<Severity> {
       findings.push(checkGenerated(platform, state));
     }
     findings.push(checkUnverifiedTriggers(countUnverified(triggerMap, known)));
+    findings.push(
+      checkModelMapFreshness(await fs.readFile(paths.modelMap, "utf8")),
+    );
   } catch (err) {
     findings.push({
       severity: "fail",
