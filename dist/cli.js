@@ -10,6 +10,7 @@ import { runSkills } from "./commands/skills.js";
 import { runSeed } from "./commands/seed.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runExplain } from "./commands/explain.js";
+import { runLessons, parseMinCommits } from "./commands/lessons.js";
 import { loadPlatforms } from "./project.js";
 import { listPlatforms } from "./adapters/registry.js";
 import { log } from "./util/log.js";
@@ -133,6 +134,15 @@ program
     .option("--repo <name>", "repo name used to locate the brain folder; default: cwd basename")
     .action(async (o) => {
     await runSeed({ root: process.cwd(), repoName: o.repo });
+});
+program
+    .command("lessons")
+    .description("List to-dos that repeat across harness-brain commits (read-only; promote them via a PR).")
+    .option("--brain <path>", "harness-brain checkout; default: HARNESS_BRAIN_PATH or .harness/config.yaml")
+    .option("--min <n>", "minimum number of different commits (default 2)", parseMinCommits)
+    .option("--json", "print JSON instead of text", false)
+    .action(async (o) => {
+    await runLessons({ root: process.cwd(), brainPath: o.brain, minCommits: o.min, json: o.json });
 });
 program
     .command("doctor")
