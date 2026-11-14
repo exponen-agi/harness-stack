@@ -19,6 +19,7 @@ export * from "./orchestrator/scheduler.js";
 export * from "./adapters/types.js";
 export * from "./adapters/registry.js";
 export * from "./skills/router.js";
+export * from "./brain/lessons.js";
 export * from "./foundation/spec-kit.js";
 export * from "./foundation/superpowers.js";
 //# sourceMappingURL=index.js.map

@@ -6,6 +6,22 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ## [Unreleased]
 
+### Added
+
+- `harness lessons`: the "learn from history" step of the self-improvement
+  loop. It reads the **Flags / to-dos** lines that `commit-brain-agent` writes
+  to harness-brain and lists the to-dos that repeat in 2 or more different
+  commits, with file and commit SHA as evidence. Read-only, no model call, no
+  network; a person promotes a lesson to a rule through a reviewed PR. Flags:
+  `--brain <path>`, `--min <n>`, `--json`. Same output on macOS, Linux and
+  Windows (CRLF-safe, `/` in paths). Covered by `tests/lessons.test.ts`.
+- README command table now lists `harness doctor` and `harness lessons`.
+
+### Fixed
+
+- `docs/agentic-loop.md`: the `HARNESS_BRAIN_PATH=... harness seed` example
+  only works in POSIX shells; added the Windows PowerShell form.
+
 ### Security
 
 - `templates/evals/`: the eval gate (which runs with your API key) now pins

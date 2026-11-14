@@ -146,7 +146,14 @@ A loop with no stop is a runaway cost. Every loop must define:
 harness seed
 
 # Point it at a specific brain folder / repo name
+#   macOS / Linux / Git Bash:
 HARNESS_BRAIN_PATH=/path/to/harness-brain harness seed --repo ledger-api
+#   Windows PowerShell (two commands):
+#   $env:HARNESS_BRAIN_PATH = "C:\path\to\harness-brain"
+#   harness seed --repo ledger-api
+
+# Learn from history: list to-dos that repeat across commits (read-only)
+harness lessons
 
 # Plan the verification gate (the stop/continue signal) for on_check agents
 harness check

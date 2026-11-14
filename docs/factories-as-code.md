@@ -223,9 +223,8 @@ instead of leaving agent quality to "looks fine on review":
     writes a dated, human-readable log of what every agent did and why (see
     the sibling [harness-brain](https://github.com/exponen-agi/harness-brain)
     repo). That log is a ready-made source of real-world successes and
-    failures; the next step is mining it to catch regressions automatically,
-    closing the loop from "an agent misbehaved in production" back to "the
-    spec that caused it gets fixed."
+    failures. **`harness lessons`** now mines it: see
+    [Learning from history](#learning-from-history-harness-lessons) below.
 
 ### The whole quality loop on one page
 
@@ -256,6 +255,52 @@ upgrade, change the number in a normal pull request that people can review.
 Until then, `npm run eval:agents` is the cheapest, most reliable thing a small
 team can lean on: it's checked into CI, requires no extra account or API key,
 and fails loudly and specifically instead of shipping a broken agent quietly.
+
+### Learning from history (`harness lessons`)
+
+Every commit gets a log entry in harness-brain, and every entry has a
+**Flags / to-dos** line. If the *same* to-do shows up in two or more
+different commits, the team keeps re-learning it. That is a lesson worth
+writing down once, as a rule.
+
+```bash
+harness lessons                      # uses HARNESS_BRAIN_PATH or .harness/config.yaml
+harness lessons --brain ../harness-brain --min 3
+harness lessons --json               # for scripts and CI
+```
+
+```text
+Repeated lessons (each seen in 2+ different commits):
+
+1. Remove the /v1 route after the sunset window  (2 commits)
+   - brain-1/ledger-api/26-06-07-HAR.md @ 7f3a9c1: Remove the /v1 route after the sunset window
+   - brain-1/ledger-web/26-06-07-HAR.md @ b21e0d4: Remove the /v1 fallback shim post-sunset
+```
+
+```mermaid
+flowchart LR
+    C["git commit"] --> B["commit-brain-agent<br/>writes a log entry"]
+    B --> L["harness lessons<br/>finds repeated to-dos"]
+    L --> H{"A person decides:<br/>worth a rule?"}
+    H -->|yes| R["Add ONE rule:<br/>AGENTS.md, agent prompt,<br/>or eval scenario"]
+    H -->|no| X["Ignore it"]
+    R --> PR["Pull request<br/>+ eval:agents in CI"]
+    PR --> C
+```
+
+Three rules keep this safe:
+
+1. **It only reads.** `harness lessons` never edits the brain, a spec or a
+   prompt. Exit code is always `0`: a lesson is a suggestion, not an error.
+2. **Each lesson shows where it came from** (file and commit SHA), so a
+   reviewer can check the evidence.
+3. **A lesson becomes a rule only through a reviewed pull request**, with the
+   same free checks as any other spec change. No agent rewrites its own
+   instructions without a person saying yes.
+
+The matching is simple word overlap, with no AI model and no network, so it
+gives the same answer on every machine. It can miss a repeat that uses very
+different words; it will never invent one that is not in your logs.
 
 ## 6. Running any of this on Mac, Windows, or Linux
 
