@@ -141,8 +141,15 @@ program
     .option("--brain <path>", "harness-brain checkout; default: HARNESS_BRAIN_PATH or .harness/config.yaml")
     .option("--min <n>", "minimum number of different commits (default 2)", parseMinCommits)
     .option("--json", "print JSON instead of text", false)
+    .option("--propose <file>", "also write a draft Markdown file with paste-ready rules (for a reviewed PR)")
     .action(async (o) => {
-    await runLessons({ root: process.cwd(), brainPath: o.brain, minCommits: o.min, json: o.json });
+    await runLessons({
+        root: process.cwd(),
+        brainPath: o.brain,
+        minCommits: o.min,
+        json: o.json,
+        propose: o.propose,
+    });
 });
 program
     .command("doctor")

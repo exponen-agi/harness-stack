@@ -154,6 +154,8 @@ HARNESS_BRAIN_PATH=/path/to/harness-brain harness seed --repo ledger-api
 
 # Learn from history: list to-dos that repeat across commits (read-only)
 harness lessons
+# ...and write paste-ready rules to a draft file for your next PR
+harness lessons --propose lessons-proposal.md
 
 # Plan the verification gate (the stop/continue signal) for on_check agents
 harness check

@@ -7,6 +7,14 @@ export interface LessonsOptions {
     minCommits?: number;
     /** Print JSON instead of text (for scripts and CI). */
     json?: boolean;
+    /**
+     * Also write a Markdown proposal (rule snippets + evidence) to this path,
+     * relative to `root`. It is the only file this command ever writes, and only
+     * when at least one lesson was found.
+     */
+    propose?: string;
+    /** Date shown in the proposal title (YYYY-MM-DD). Default: today (UTC). */
+    today?: string;
 }
 /** Same lookup order as `harness seed`: flag, then env var, then config. */
 export declare function resolveBrainDir(root: string, explicit?: string): Promise<string | undefined>;

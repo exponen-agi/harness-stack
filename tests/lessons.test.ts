@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -8,10 +8,12 @@ import {
   findRepeatedLessons,
   lessonSimilarity,
   renderLessons,
+  renderProposal,
   splitTodos,
   type LessonItem,
 } from "../src/brain/lessons.js";
-import { parseMinCommits, resolveBrainDir } from "../src/commands/lessons.js";
+import { parseMinCommits, resolveBrainDir, runLessons } from "../src/commands/lessons.js";
+import YAML from "yaml";
 
 const bundledBrain = path.resolve(__dirname, "../templates/brain");
 
@@ -181,6 +183,67 @@ describe("lessons command helpers", () => {
     } finally {
       if (before === undefined) delete process.env.HARNESS_BRAIN_PATH;
       else process.env.HARNESS_BRAIN_PATH = before;
+    }
+  });
+});
+
+describe("renderProposal", () => {
+  const lesson = {
+    title: 'Remove the "v1" route',
+    commits: 2,
+    items: [
+      { text: 'Remove the "v1" route', sha: "abc1234", file: "b/r/26-01-01-HAR.md" },
+      { text: "Remove v1 route", sha: "def5678", file: "b/s/26-01-02-HAR.md" },
+    ],
+  };
+
+  it("lists evidence and gives one snippet for each place a rule can live", () => {
+    const md = renderProposal([lesson], 2, "2026-11-20");
+    expect(md).toContain("# Proposed rules from harness-brain (2026-11-20)");
+    expect(md).toContain("`b/r/26-01-01-HAR.md` @ `abc1234`");
+    expect(md).toContain("(Learned from harness-brain: abc1234, def5678.)");
+    expect(md).toContain("**A. `AGENTS.md` line**");
+    expect(md).toContain("**B. Agent prompt rule**");
+    expect(md).toContain("**C. Eval scenario**");
+    expect(md).toContain("pull request");
+  });
+
+  it("produces an eval snippet that is valid YAML even when the lesson has quotes", () => {
+    const md = renderProposal([lesson], 2, "2026-11-20");
+    const block = /\*\*C\. Eval scenario\*\*[\s\S]*?```yaml\n([\s\S]*?)```/.exec(md)?.[1] ?? "";
+    const parsed = YAML.parse(block) as { description: string; assert: { type: string }[] }[];
+    expect(parsed[0]!.description).toBe("Remembers: Remove the 'v1' route");
+    expect(parsed[0]!.assert[0]!.type).toBe("llm-rubric");
+  });
+});
+
+describe("runLessons --propose", () => {
+  it("writes the draft file only when lessons exist, and only there", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "lessons-propose-"));
+    tempDirs.push(root);
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    try {
+      const target = path.join("drafts", "rules.md");
+      const lessons = await runLessons({
+        root,
+        brainPath: bundledBrain,
+        propose: target,
+        today: "2026-11-20",
+      });
+      expect(lessons.length).toBeGreaterThan(0);
+      const md = await fs.readFile(path.join(root, target), "utf8");
+      expect(md).toContain("(2026-11-20)");
+      expect(md).toContain(lessons[0]!.title);
+
+      // An empty brain writes nothing.
+      const empty = path.join(root, "empty-brain");
+      await fs.mkdir(path.join(empty, "projects"), { recursive: true });
+      await runLessons({ root, brainPath: empty, propose: "none.md" });
+      await expect(fs.stat(path.join(root, "none.md"))).rejects.toThrow();
+    } finally {
+      out.mockRestore();
+      err.mockRestore();
     }
   });
 });

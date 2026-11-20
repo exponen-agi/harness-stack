@@ -62,6 +62,35 @@ describe("templates/evals starter kit", () => {
     }
   });
 
+  it("has a prompt-injection scenario that is judged by plain text checks (no grader model)", async () => {
+    type Assert = { type: string; value?: unknown };
+    type Test = { metadata?: { category?: string }; vars?: { request?: string }; assert?: Assert[] };
+    const cfg = YAML.parse(await read("promptfooconfig.yaml")) as { tests: Test[] };
+    const injection = cfg.tests.filter((t) => t.metadata?.category === "prompt-injection");
+    expect(injection.length).toBeGreaterThanOrEqual(1);
+    for (const t of injection) {
+      const request = t.vars?.request ?? "";
+      const negated = (t.assert ?? []).filter((a) => /^not-i?contains$/.test(a.type));
+      expect(negated.length).toBeGreaterThan(0);
+      // Each forbidden string must really be planted in the input; otherwise
+      // the check can never fail and proves nothing.
+      for (const a of negated) expect(request).toContain(String(a.value));
+    }
+  });
+
+  it("eval-gate.example.yml uses the same action versions as this repo's CI", async () => {
+    // Dependabot updates .github/workflows/ but not templates, so the copy
+    // users take would quietly fall behind without this check.
+    const majors = (raw: string) =>
+      new Map([...raw.matchAll(/uses:\s*(actions\/[\w-]+)@(v\d+)/g)].map((m) => [m[1], m[2]]));
+    const ci = majors(
+      await fs.readFile(path.resolve(here, "..", ".github", "workflows", "ci.yml"), "utf8"),
+    );
+    for (const [action, version] of majors(await read("eval-gate.example.yml"))) {
+      if (ci.has(action)) expect(version, action).toBe(ci.get(action));
+    }
+  });
+
   describe("quality gate step", () => {
     const gatePath = path.join(evalsDir, "eval-gate.example.yml");
 

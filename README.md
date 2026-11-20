@@ -257,7 +257,7 @@ git commit -m "Add Harness sub-agents"
 | `harness skills` | Show how agents are exposed as skills and slash commands. Flag: `-p, --platform` |
 | `harness explain [agent]` | Explain each agent in plain English: goal, when it runs (trigger to real hook), how to run it by hand, what it can do. Read-only. Flag: `-p, --platform` |
 | `harness seed` | Print the iteration seed (north-star plus brain state) for loop and context reset. Flag: `--repo <name>` |
-| `harness lessons` | List to-dos that repeat across 2+ commits in harness-brain: candidates for a permanent rule. Read-only; you promote a lesson through a reviewed PR. Flags: `--brain <path>`, `--min <n>`, `--json` |
+| `harness lessons` | List to-dos that repeat across 2+ commits in harness-brain: candidates for a permanent rule. Read-only; you promote a lesson through a reviewed PR. Flags: `--brain <path>`, `--min <n>`, `--json`, `--propose <file>` (writes a draft file with paste-ready rules for your PR) |
 | `harness doctor` | Check Node.js, git, agent specs, generated files and model-map age; print the fix for each problem. Read-only; exit code `1` on problems |
 
 ## Configuration
