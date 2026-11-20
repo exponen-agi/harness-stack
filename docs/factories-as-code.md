@@ -276,7 +276,7 @@ paste-ready snippets: **A.** an `AGENTS.md` line, **B.** an agent prompt rule,
 **C.** a Promptfoo eval scenario. You keep the ones you want, delete the file,
 and open a pull request. If no lesson repeats, no file is written. The
 command works the same on macOS, Linux and Windows (the path can use `/` or
-`\\` on Windows).
+`\` on Windows).
 
 ```text
 Repeated lessons (each seen in 2+ different commits):
