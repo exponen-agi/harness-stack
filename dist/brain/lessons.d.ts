@@ -47,4 +47,11 @@ export declare function findRepeatedLessons(items: readonly LessonItem[], opts?:
 export declare function collectBrainTodos(brainPath: string): Promise<LessonItem[]>;
 /** Plain-English report. Empty input gives a short "nothing yet" message. */
 export declare function renderLessons(lessons: readonly RepeatedLesson[], minCommits: number): string;
+/**
+ * A ready-to-review proposal file: one section per repeated lesson, with the
+ * evidence and paste-ready snippets for the three places a rule can live.
+ * Pure (the date is passed in), so it is easy to test. Always uses "\n";
+ * git's line-ending settings handle Windows checkouts.
+ */
+export declare function renderProposal(lessons: readonly RepeatedLesson[], minCommits: number, date: string): string;
 //# sourceMappingURL=lessons.d.ts.map

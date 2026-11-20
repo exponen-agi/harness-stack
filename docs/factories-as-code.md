@@ -267,7 +267,16 @@ writing down once, as a rule.
 harness lessons                      # uses HARNESS_BRAIN_PATH or .harness/config.yaml
 harness lessons --brain ../harness-brain --min 3
 harness lessons --json               # for scripts and CI
+harness lessons --propose lessons-proposal.md   # also write a draft for your PR
 ```
+
+`--propose <file>` saves the time between "we found a lesson" and "we have a
+rule". It writes ONE Markdown file with the evidence for each lesson and three
+paste-ready snippets: **A.** an `AGENTS.md` line, **B.** an agent prompt rule,
+**C.** a Promptfoo eval scenario. You keep the ones you want, delete the file,
+and open a pull request. If no lesson repeats, no file is written. The
+command works the same on macOS, Linux and Windows (the path can use `/` or
+`\\` on Windows).
 
 ```text
 Repeated lessons (each seen in 2+ different commits):
@@ -291,7 +300,9 @@ flowchart LR
 Three rules keep this safe:
 
 1. **It only reads.** `harness lessons` never edits the brain, a spec or a
-   prompt. Exit code is always `0`: a lesson is a suggestion, not an error.
+   prompt. The only file it can write is the draft you name with
+   `--propose`. Exit code is always `0`: a lesson is a suggestion, not an
+   error.
 2. **Each lesson shows where it came from** (file and commit SHA), so a
    reviewer can check the evidence.
 3. **A lesson becomes a rule only through a reviewed pull request**, with the

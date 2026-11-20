@@ -10,8 +10,9 @@
  * 0: a repeated lesson is a suggestion, not a failure.
  */
 import path from "node:path";
+import fs from "node:fs/promises";
 import { loadBrainConfig } from "../project.js";
-import { collectBrainTodos, DEFAULT_MIN_COMMITS, findRepeatedLessons, renderLessons, } from "../brain/lessons.js";
+import { collectBrainTodos, DEFAULT_MIN_COMMITS, findRepeatedLessons, renderLessons, renderProposal, } from "../brain/lessons.js";
 import { pathExists } from "../util/fsx.js";
 import { log } from "../util/log.js";
 /** Same lookup order as `harness seed`: flag, then env var, then config. */
@@ -30,6 +31,19 @@ export function parseMinCommits(raw) {
         throw new Error(`--min must be a whole number of 2 or more (got "${raw}")`);
     }
     return n;
+}
+async function writeProposal(opts, lessons, minCommits) {
+    // Messages go to stderr so `--json --propose` still prints valid JSON.
+    if (lessons.length === 0) {
+        log.warn("No repeated lessons, so no proposal file was written.");
+        return;
+    }
+    const target = path.resolve(opts.root, opts.propose);
+    const date = opts.today ?? new Date().toISOString().slice(0, 10);
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, renderProposal(lessons, minCommits, date) + "\n", "utf8");
+    process.stderr.write(`Wrote a draft proposal to ${path.relative(opts.root, target) || target}.\n` +
+        "Review it, keep the rules you want, and open a pull request.\n");
 }
 export async function runLessons(opts) {
     const minCommits = opts.minCommits ?? DEFAULT_MIN_COMMITS;
@@ -56,6 +70,8 @@ export async function runLessons(opts) {
     else {
         process.stdout.write(renderLessons(lessons, minCommits) + "\n");
     }
+    if (opts.propose)
+        await writeProposal(opts, lessons, minCommits);
     return lessons;
 }
 //# sourceMappingURL=lessons.js.map

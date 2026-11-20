@@ -202,3 +202,78 @@ export function renderLessons(lessons: readonly RepeatedLesson[], minCommits: nu
   );
   return lines.join("\n");
 }
+
+/** Keep a lesson safe to paste into YAML/Markdown: one line, no quotes. */
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, " ").replace(/["\\]/g, "'").trim();
+}
+
+/**
+ * A ready-to-review proposal file: one section per repeated lesson, with the
+ * evidence and paste-ready snippets for the three places a rule can live.
+ * Pure (the date is passed in), so it is easy to test. Always uses "\n";
+ * git's line-ending settings handle Windows checkouts.
+ */
+export function renderProposal(
+  lessons: readonly RepeatedLesson[],
+  minCommits: number,
+  date: string,
+): string {
+  const lines = [
+    `# Proposed rules from harness-brain (${date})`,
+    "",
+    `Made by \`harness lessons --propose\`. Each lesson below was written as a`,
+    `to-do in ${minCommits} or more different commits. Nothing was changed for you:`,
+    "this file is only a draft for a person to review.",
+    "",
+    "## How to use this file",
+    "",
+    "1. Read each lesson and its evidence. Delete the ones that are not worth a rule.",
+    "2. For each lesson you keep, pick ONE place for the rule and paste the snippet:",
+    "   - **A. `AGENTS.md`** - a rule every agent and person reads.",
+    "   - **B. An agent prompt** - a rule in one `.subagents/<agent>.yaml` `prompt:`.",
+    "   - **C. An eval scenario** - a test in your `promptfooconfig.yaml`, so the",
+    "     rule is checked on every pull request.",
+    "3. Run `harness build-agents` and `npm run eval:agents -- --strict`.",
+    "4. Open a pull request. A person approves the rule; no agent edits itself.",
+    "5. Delete this file before you merge (or keep it in the PR description).",
+    "",
+  ];
+  lessons.forEach((l, i) => {
+    const rule = oneLine(l.title);
+    const shas = [...new Set(l.items.map((it) => it.sha).filter(Boolean))].join(", ");
+    lines.push(
+      `## ${i + 1}. ${rule}`,
+      "",
+      `Seen in ${l.commits} different commits. Evidence:`,
+      "",
+      ...l.items.map((it) => `- \`${it.file}\`${it.sha ? ` @ \`${it.sha}\`` : ""}: ${oneLine(it.text)}`),
+      "",
+      "**A. `AGENTS.md` line**",
+      "",
+      "```markdown",
+      `- ${rule}. (Learned from harness-brain${shas ? `: ${shas}` : ""}.)`,
+      "```",
+      "",
+      "**B. Agent prompt rule** (add under `prompt: |` in `.subagents/<agent>.yaml`)",
+      "",
+      "```yaml",
+      `  - Before you finish, check: ${rule}.`,
+      "```",
+      "",
+      "**C. Eval scenario** (add under `tests:` in `promptfooconfig.yaml`)",
+      "",
+      "```yaml",
+      `- description: "Remembers: ${rule}"`,
+      "  vars:",
+      "    request: |",
+      "      <Describe a change where this lesson matters. Ask the agent to review it.>",
+      "  assert:",
+      "    - type: llm-rubric",
+      `      value: "The response reminds the user to: ${rule}"`,
+      "```",
+      "",
+    );
+  });
+  return lines.join("\n");
+}

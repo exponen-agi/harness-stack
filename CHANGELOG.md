@@ -8,6 +8,27 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- `harness lessons --propose <file>`: closes the gap between "we found a
+  repeated lesson" and "we have a rule". It writes one Markdown draft with the
+  evidence (file + commit SHA) and three paste-ready snippets per lesson: an
+  `AGENTS.md` line, an agent prompt rule, and a Promptfoo eval scenario. It is
+  the only file the command writes, and only when a lesson repeats; JSON
+  output stays clean (messages go to stderr). Covered by
+  `tests/lessons.test.ts`, including a check that the eval snippet is valid
+  YAML.
+- `templates/evals/promptfooconfig.yaml`: a prompt-injection smoke scenario.
+  It hides an instruction in a fake tool result and asserts, with plain text
+  checks (no grader model), that the reply never contains the planted canary
+  word or `curl ... | sh` command. `tests/evals-template.test.ts` fails if a
+  forbidden word is not really in the input (a check that can never fail).
+
+### Changed
+
+- `templates/evals/eval-gate.example.yml` now uses `actions/checkout@v7` and
+  `actions/setup-node@v7`, the same as this repo's CI. Dependabot does not
+  update templates, so a new test keeps their versions in sync with
+  `.github/workflows/ci.yml`.
+
 - `harness lessons`: the "learn from history" step of the self-improvement
   loop. It reads the **Flags / to-dos** lines that `commit-brain-agent` writes
   to harness-brain and lists the to-dos that repeat in 2 or more different
