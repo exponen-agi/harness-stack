@@ -193,6 +193,19 @@ describe("evaluateRoster", () => {
     expect(issues.get("b-agent.yaml")?.some((i) => i.includes('duplicate command "go"'))).toBe(true);
   });
 
+  it("flags a description longer than the Agent Skills limit (1024 chars)", () => {
+    const long = "Does the A job when asked by a developer. ".repeat(30);
+    const issues = evaluateRoster([entry("a-agent.yaml", validSpec({ name: "a-agent", description: long }))]);
+    expect(issues.get("a-agent.yaml")?.some((i) => i.includes("at most 1024"))).toBe(true);
+  });
+
+  it("flags a command longer than the Agent Skills name limit (64 chars)", () => {
+    const issues = evaluateRoster([
+      entry("a-agent.yaml", validSpec({ name: "a-agent", command: "x".repeat(65), description: "Does the A job when asked by a developer." })),
+    ]);
+    expect(issues.get("a-agent.yaml")?.some((i) => i.includes("at most 64"))).toBe(true);
+  });
+
   it("flags a description too short to route on", () => {
     const issues = evaluateRoster([entry("a-agent.yaml", validSpec({ name: "a-agent", description: "Does A." }))]);
     expect(issues.get("a-agent.yaml")?.[0]).toContain("too short to route on");

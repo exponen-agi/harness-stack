@@ -206,6 +206,18 @@ instead of leaving agent quality to "looks fine on review":
   catches that class of bug with no model credentials and no network call,
   the same way `eval:agents` does, and a reviewer can read exactly what
   changed from the snapshot diff in the PR.
+- **Agent Skills spec check** (new). Claude Code, Codex, Cursor and
+  Antigravity read skills in the open
+  [Agent Skills format](https://agentskills.io/specification). A tool may
+  **silently skip** a `SKILL.md` that breaks its rules, so your agent just
+  "does not show up". Two checks stop that:
+  - `harness build-agents` checks every `SKILL.md` it writes: `name` is 1–64
+    lowercase letters, numbers and single hyphens and equals its folder name;
+    `description` is 1–1024 characters; the body is under 500 lines. A
+    problem prints as a warning (the sub-agent file still works).
+  - `npm run eval:agents` fails if an agent's `description` is over 1024
+    characters or its `command` is over 64 characters, so the problem never
+    ships. Code: `src/adapters/skill-spec.ts`, tests: `tests/skill-spec.test.ts`.
 - This is deliberately a **starting point, not a finish line**. Today's checks
   are about spec *hygiene* (does the spec make sense on its face) rather than
   output *quality* (is what the agent actually produces any good). The
@@ -225,6 +237,65 @@ instead of leaving agent quality to "looks fine on review":
     repo). That log is a ready-made source of real-world successes and
     failures. **`harness lessons`** now mines it: see
     [Learning from history](#learning-from-history-harness-lessons) below.
+
+### Guides and sensors: a map of every check
+
+Industry write-ups on *harness engineering* (for example
+[Böckeler on martinfowler.com, 2026](https://martinfowler.com/articles/harness-engineering.html))
+sort every part of a harness into two groups. It is a useful way to see what
+your factory covers:
+
+- **Guide** = steers the AI **before** it acts (instructions, specs, the
+  right skills and tools).
+- **Sensor** = checks the result **after** it acts (tests, reviews, evals).
+
+Each check is also either **computational** (plain code: fast, free, same
+answer every time, so run it on every change) or **inferential** (an AI model
+judges: slower, costs tokens, can vary, so run it where it adds the most).
+
+```mermaid
+flowchart LR
+  subgraph G[Guides - before the AI acts]
+    G1[AGENTS.md + .subagents/*.yaml]
+    G2[harness-init-agent]
+    G3[spec-author-agent]
+    G4[skills-router-agent]
+    G5[mcp-router-agent]
+  end
+  subgraph S[Sensors - after the AI acts]
+    S1[verifier-agent<br/>runs tests]
+    S2[drift-reviewer-agent<br/>AI review]
+    S3[dependency-audit-agent]
+    S4[eval:agents + Agent Skills check<br/>+ build snapshot]
+    S5[Promptfoo eval gate]
+  end
+  G --> W((AI does<br/>the work)) --> S
+  S -->|commit-brain-agent logs result| B[(harness-brain)]
+  B -->|harness lessons| G
+```
+
+When each agent runs is listed in the [roster table](#3-the-v1-agent-roster)
+and by `harness explain`; this table only shows what *kind* of check it is.
+
+| Check | Guide or sensor | Computational or inferential |
+|---|---|---|
+| **AGENTS.md** and **.subagents/\*.yaml** | Guide | — (text the AI reads every session) |
+| **harness-init-agent** | Guide | Inferential |
+| **spec-author-agent** | Guide | Inferential |
+| **skills-router-agent**, **mcp-router-agent** | Guide | Inferential |
+| **verifier-agent** | Sensor | Computational (runs your tests) |
+| **test-author-agent** | Helper the verifier calls to fill test gaps | Inferential |
+| **drift-reviewer-agent** | Sensor | Inferential |
+| **dependency-audit-agent** | Sensor | Mostly computational |
+| **eval:agents**, Agent Skills check, build snapshot | Sensor (every PR in CI, macOS/Linux/Windows) | Computational |
+| **Promptfoo eval gate** | Sensor (PRs that change agents; needs an API key) | Inferential |
+| **commit-brain-agent** + `harness lessons` | Memory: feeds the next guide change | Inferential + computational |
+
+**Rule of thumb for small teams:** add a cheap computational sensor first
+(a test, a lint, a schema check). Add an inferential one (an AI reviewer, a
+paid eval) only when a computational check cannot see the problem. When the
+same mistake happens twice, fix the *guide* (the spec or `AGENTS.md`) so it
+cannot happen again; `harness lessons` helps you find those repeats.
 
 ### The whole quality loop on one page
 
