@@ -8,6 +8,18 @@ pre-1.0, so breaking changes may still land in a minor version.
 
 ### Added
 
+- Agent Skills spec check. `harness build-agents` now checks every `SKILL.md`
+  it writes against the open [Agent Skills spec](https://agentskills.io/specification):
+  `name` 1-64 lowercase letters, numbers and single hyphens, equal to its
+  folder; `description` 1-1024 chars; body under 500 lines. A problem is a
+  warning, because tools may silently skip a broken skill but the sub-agent
+  file still works. `npm run eval:agents` now fails when an agent's
+  `description` is over 1024 chars or its `command` is over 64 chars.
+  Code: `src/adapters/skill-spec.ts`; tests: `tests/skill-spec.test.ts`
+  (also checks every skill the shipped roster generates on all 5 platforms).
+- `docs/factories-as-code.md`: new "Guides and sensors" section with a diagram
+  and a table that shows, for every agent and check, whether it steers the AI
+  before it acts or checks the result after, and when it runs.
 - `harness lessons`: the "learn from history" step of the self-improvement
   loop. It reads the **Flags / to-dos** lines that `commit-brain-agent` writes
   to harness-brain and lists the to-dos that repeat in 2 or more different

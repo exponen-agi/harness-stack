@@ -11,6 +11,7 @@ import { resolveCapabilities } from "./resolution/capability-resolver.js";
 import { checkFreshContext } from "./resolution/fresh-context.js";
 import { getAdapter } from "./adapters/registry.js";
 import type { GeneratedFile } from "./adapters/types.js";
+import { checkSkillFile, isSkillFile } from "./adapters/skill-spec.js";
 
 export interface BuildOptions {
   platform: string;
@@ -101,6 +102,15 @@ export function buildRoster(
       } else {
         // Platform mapping not yet available — sub-agent dispatch still works.
         pendingManual++;
+      }
+    }
+
+    // Agent Skills spec check: a tool may silently skip a skill that breaks
+    // the spec, so say so here. A warning, not an error: the sub-agent file
+    // above still works even if the skill entry point is ignored.
+    for (const m of manualFiles) {
+      if (isSkillFile(m.relPath)) {
+        warnings.push(...checkSkillFile(m).map((p) => `Agent Skills spec: ${p}`));
       }
     }
 

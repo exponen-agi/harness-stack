@@ -124,6 +124,9 @@ export function evaluateAgentSpec(spec, validTriggers, knownCapabilities) {
 }
 
 const MIN_DESCRIPTION_LENGTH = 40;
+// Limits from the Agent Skills spec (see src/adapters/skill-spec.ts).
+const MAX_SKILL_DESCRIPTION_LENGTH = 1024;
+const MAX_SKILL_NAME_LENGTH = 64;
 // A prompt "has a guard" if it calls fetched content untrusted / injection.
 const INJECTION_GUARD = /untrusted|prompt[- ]injection/i;
 
@@ -165,6 +168,7 @@ export function lintAgentSafety(spec) {
  * - `name` must equal the file name (so `verifier-agent.yaml` holds `verifier-agent`)
  * - `name` and the slash `command` must be unique (two agents would collide)
  * - `description` must be long enough to route on (AI tools pick an agent by it)
+ * - `description` <= 1024 chars and `command` <= 64 chars (Agent Skills spec limits)
  *
  * @param {{ file: string, spec: Record<string, unknown> }[]} entries
  * @returns {Map<string, string[]>} file -> issues (only files with issues)
@@ -187,6 +191,22 @@ export function evaluateRoster(entries) {
     if (command) commands.set(command, [...(commands.get(command) ?? []), file]);
 
     const description = typeof spec?.description === "string" ? spec.description.trim() : "";
+    // Agent Skills spec (https://agentskills.io/specification): the agent's
+    // description becomes the skill description (max 1024 chars) and its
+    // command becomes the skill name (max 64 chars). Tools may silently skip
+    // a skill that breaks these limits, so fail here, before it ships.
+    if (description.length > MAX_SKILL_DESCRIPTION_LENGTH) {
+      add(
+        file,
+        `"description" is ${description.length} chars; Agent Skills allows at most ${MAX_SKILL_DESCRIPTION_LENGTH} — shorten it`,
+      );
+    }
+    if (command.length > MAX_SKILL_NAME_LENGTH) {
+      add(
+        file,
+        `command "${command}" is ${command.length} chars; Agent Skills names allow at most ${MAX_SKILL_NAME_LENGTH} — set a shorter "command:"`,
+      );
+    }
     if (description.length > 0 && description.length < MIN_DESCRIPTION_LENGTH) {
       add(
         file,
